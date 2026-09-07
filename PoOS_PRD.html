@@ -1,0 +1,2937 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PoOS — Master Product Requirements Document</title>
+  <meta name="description"
+    content="PoOS (Project & Open-source Opportunity System) - Combined Final Master Product Requirements & Technical Architecture Document">
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230A1628'/%3E%3Ctext x='50' y='70' font-size='46' text-anchor='middle' fill='%23C9A227' font-family='monospace'%3E%26lt;/%26gt;%3C/text%3E%3C/svg%3E">
+
+  <!-- Google Fonts — MinnalMoney Signature Font Stack -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #0a1628;
+      --bg-surface: #132238;
+      --bg-surface-elevated: #1c2d42;
+      --bg-subtle: #0e1b2e;
+      --bg-sidebar: #08101d;
+      --border-color: rgba(201, 162, 39, 0.22);
+      --border-strong: rgba(201, 162, 39, 0.45);
+
+      --text-main: #f8fafc;
+      --text-soft: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --text-gold: #c9a227;
+
+      --gold-primary: #c9a227;
+      --gold-light: #e5b82e;
+      --gold-bg: rgba(201, 162, 39, 0.12);
+      --gold-border: rgba(201, 162, 39, 0.35);
+      --gold-glow: rgba(201, 162, 39, 0.4);
+
+      --cyan-primary: #00f5d4;
+      --cyan-bg: rgba(0, 245, 212, 0.12);
+      --cyan-border: rgba(0, 245, 212, 0.3);
+
+      --green-primary: #10b981;
+      --green-light: #34d399;
+      --green-bg: rgba(16, 185, 129, 0.12);
+      --green-border: rgba(16, 185, 129, 0.28);
+
+      --red-primary: #f87171;
+      --red-bg: rgba(239, 68, 68, 0.12);
+      --red-border: rgba(239, 68, 68, 0.3);
+
+      --indigo-primary: #818cf8;
+      --indigo-bg: rgba(99, 102, 241, 0.12);
+      --indigo-border: rgba(99, 102, 241, 0.3);
+
+      --amber-primary: #fbbf24;
+      --amber-bg: rgba(245, 158, 11, 0.12);
+      --amber-border: rgba(245, 158, 11, 0.28);
+
+      --font-heading: 'Space Grotesk', 'Outfit', sans-serif;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+
+      --sidebar-width: 340px;
+      --header-height: 64px;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+
+      --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-sidebar: #ffffff;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+
+      --text-main: #0f172a;
+      --text-soft: #334155;
+      --text-muted: #64748b;
+      --text-faint: #94a3b8;
+      --text-gold: #b8860b;
+
+      --gold-primary: #b8860b;
+      --gold-light: #d4af37;
+      --gold-bg: #fffbe6;
+      --gold-border: #ffe58f;
+      --gold-glow: rgba(184, 134, 11, 0.15);
+
+      --cyan-primary: #0284c7;
+      --cyan-bg: #f0f9ff;
+      --cyan-border: #bae6fd;
+
+      --green-primary: #059669;
+      --green-light: #10b981;
+      --green-bg: #ecfdf5;
+      --green-border: #a7f3d0;
+
+      --red-primary: #dc2626;
+      --red-bg: #fef2f2;
+      --red-border: #fecaca;
+
+      --indigo-primary: #4f46e5;
+      --indigo-bg: #eef2ff;
+      --indigo-border: #c7d2fe;
+
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Reading Progress Bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #c9a227, #00f5d4, #10b981);
+      width: 0%;
+      z-index: 1000;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 12px var(--gold-primary);
+    }
+
+    /* Sticky Top Header (MinnalMoney Terminal Bar) */
+    .top-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: var(--header-height);
+      background: rgba(8, 16, 29, 0.94);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="light"] .top-toolbar {
+      background: rgba(255, 255, 255, 0.94);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brandmark {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brandmark .mark {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-primary);
+      background: rgba(10, 22, 40, 0.8);
+      border: 1px solid var(--border-strong);
+      padding: 4px 8px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px var(--gold-bg);
+    }
+
+    .brandmark .brand-text .name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .brandmark .brand-text .sub {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-gold);
+      letter-spacing: .04em;
+    }
+
+    .doc-badge-title {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 15px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      color: var(--text-soft);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .action-btn svg {
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+    }
+
+    /* Main Layout Shell */
+    .app-shell {
+      display: flex;
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sticky Navigation Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      border-right: 1px solid var(--border-color);
+      background: var(--bg-sidebar);
+      position: sticky;
+      top: var(--header-height);
+      height: calc(100vh - var(--header-height));
+      overflow-y: auto;
+      padding: 24px 20px 60px;
+      transition: background-color 0.3s ease;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 4px;
+    }
+
+    .brand-sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      padding: 8px 12px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .brand-sidebar-header .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green-primary);
+      box-shadow: 0 0 10px var(--green-primary);
+    }
+
+    .sidebar-search {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .sidebar-search input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-subtle);
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .sidebar-search input:focus {
+      border-color: var(--green-primary);
+      box-shadow: 0 0 0 3px var(--green-bg);
+      background: var(--bg-surface);
+    }
+
+    .sidebar-search svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      fill: var(--text-muted);
+    }
+
+    .nav-group-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .02em;
+      color: var(--text-main);
+      margin: 22px 0 10px;
+      padding: 0 4px 6px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-group-title span {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--green-primary);
+    }
+
+    .toc-list {
+      list-style: none;
+      margin: 0 0 16px;
+      padding: 0;
+    }
+
+    .toc-list li {
+      margin: 2px 0;
+    }
+
+    .toc-list a {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text-soft);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      line-height: 1.35;
+      transition: all 0.15s ease;
+    }
+
+    .toc-list a:hover {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+      transform: translateX(3px);
+    }
+
+    .toc-list a.active {
+      background: var(--gold-bg);
+      color: var(--gold-light);
+      font-weight: 700;
+      border-left: 3px solid var(--gold-primary);
+    }
+
+    .toc-list a .n {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      min-width: 22px;
+      flex-shrink: 0;
+    }
+
+    .toc-list a.active .n {
+      color: var(--gold-primary);
+    }
+
+    /* Workspace Canvas */
+    .main-workspace {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-base);
+    }
+
+    /* MinnalMoney Signature Cover Banner & UI Elements */
+    .cover-banner {
+      padding: 64px 80px 56px;
+      border-bottom: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 90% 10%, rgba(201, 162, 39, 0.14), transparent 45%),
+        radial-gradient(circle at 10% 90%, rgba(0, 245, 212, 0.1), transparent 45%),
+        var(--bg-surface);
+    }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold-primary);
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+
+    .tagline {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-soft);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding-left: 12px;
+      border-left: 3px solid var(--gold-primary);
+      margin: 14px 0 20px;
+    }
+
+    .stat-row {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      border-radius: var(--radius-md);
+    }
+
+    .stat-eyebrow {
+      grid-column: 1 / -1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gold-primary);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 700;
+    }
+
+    .stat {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      border-left: 3px solid var(--gold-primary);
+    }
+
+    .stat .num {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 26px;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .stat .num span {
+      font-size: 13px;
+      color: var(--gold-primary);
+      margin-left: 4px;
+    }
+
+    .stat .lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.3;
+    }
+
+    .cover-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .meta-chip {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 7px 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(10px);
+    }
+
+    .meta-chip b {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .meta-chip.status {
+      border-color: var(--green-border);
+      color: var(--green-light);
+      background: var(--green-bg);
+    }
+
+    .cover-graph {
+      margin-top: 40px;
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      height: 52px;
+      padding: 10px 16px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      width: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .cover-graph i {
+      display: block;
+      width: 10px;
+      border-radius: 3px 3px 0 0;
+      background: var(--border-strong);
+      transition: all 0.25s ease;
+    }
+
+    .cover-graph i.on {
+      background: var(--green-primary);
+      box-shadow: 0 0 10px var(--green-glow);
+    }
+
+    .cover-caption {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 12px;
+      letter-spacing: .02em;
+    }
+
+    /* Document Part Headers */
+    .doc-header {
+      padding: 56px 80px 24px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-subtle);
+    }
+
+    .doc-header .doc-kicker {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--indigo-primary);
+      background: var(--indigo-bg);
+      border: 1px solid var(--indigo-border);
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
+    }
+
+    .doc-header h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(26px, 3vw, 38px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin: 0 0 8px;
+      color: var(--text-main);
+    }
+
+    .doc-header p {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* Main Content Area */
+    .content {
+      padding: 0 80px 80px;
+    }
+
+    section.sec {
+      position: relative;
+      padding: 40px 0 40px 48px;
+      border-left: 2px solid var(--border-color);
+      margin-left: 12px;
+      transition: border-color 0.3s ease;
+    }
+
+    section.sec:hover {
+      border-left-color: var(--green-primary);
+    }
+
+    section.sec:last-child {
+      border-color: transparent;
+    }
+
+    section.sec::before {
+      content: "";
+      position: absolute;
+      left: -9px;
+      top: 48px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 3px solid var(--green-primary);
+      box-shadow: 0 0 0 4px var(--bg-base);
+      transition: all 0.3s ease;
+    }
+
+    section.sec:hover::before {
+      transform: scale(1.25);
+      background: var(--green-primary);
+      box-shadow: 0 0 16px var(--green-primary);
+    }
+
+    section.sec h3 {
+      font-family: var(--font-heading);
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-main);
+      flex-wrap: wrap;
+    }
+
+    section.sec h3 .idx {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green-primary);
+      background: var(--green-bg);
+      padding: 3px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--green-border);
+    }
+
+    .anchor-btn {
+      opacity: 0;
+      text-decoration: none;
+      color: var(--text-faint);
+      font-size: 18px;
+      margin-left: 6px;
+      transition: all 0.2s ease;
+    }
+
+    section.sec h3:hover .anchor-btn {
+      opacity: 1;
+    }
+
+    .anchor-btn:hover {
+      color: var(--green-primary);
+      transform: scale(1.2);
+    }
+
+    section.sec p {
+      margin: 0 0 16px;
+      color: var(--text-soft);
+      font-size: 16px;
+    }
+
+    section.sec p:last-child {
+      margin-bottom: 0;
+    }
+
+    section.sec ul,
+    section.sec ol {
+      margin: 0 0 18px;
+      padding-left: 24px;
+      color: var(--text-soft);
+      font-size: 15.5px;
+    }
+
+    section.sec li {
+      margin-bottom: 8px;
+    }
+
+    section.sec ul ul,
+    section.sec ol ol {
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+
+    section.sec strong {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .lead {
+      font-size: 18px;
+      color: var(--text-main);
+      line-height: 1.65;
+      font-weight: 500;
+    }
+
+    .subhead {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 15.5px;
+      color: var(--text-main);
+      margin: 26px 0 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .subhead::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: var(--green-primary);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green-primary);
+    }
+
+    /* Grid Cards */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+      margin: 24px 0 28px;
+    }
+
+    .role-card {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      background: var(--bg-surface);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+
+    .role-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-strong);
+      background: var(--bg-surface-elevated);
+    }
+
+    .role-card h4 {
+      font-family: var(--font-heading);
+      font-size: 16.5px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .role-card ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 14px;
+    }
+
+    .role-card li {
+      margin-bottom: 6px;
+    }
+
+    /* Pill Badges */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 5px 13px;
+      border-radius: 30px;
+      background: var(--indigo-bg);
+      color: var(--indigo-primary);
+      border: 1px solid var(--indigo-border);
+      margin: 3px 5px 3px 0;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .pill:hover {
+      transform: translateY(-2px) scale(1.03);
+      background: var(--indigo-primary);
+      color: #ffffff;
+    }
+
+    .pill.cyan {
+      background: var(--cyan-bg);
+      color: var(--cyan-primary);
+      border-color: var(--cyan-border);
+    }
+
+    .pill.green {
+      background: var(--green-bg);
+      color: var(--green-light);
+      border-color: var(--green-border);
+    }
+
+    .pill.amber {
+      background: var(--amber-bg);
+      color: var(--amber-primary);
+      border-color: var(--amber-border);
+    }
+
+    .pill-row {
+      margin: 18px 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Stepper Flow */
+    .stepper {
+      margin: 26px 0 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 6px 0;
+    }
+
+    .step .node {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 2px solid var(--green-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--green-primary);
+      font-weight: 700;
+      box-shadow: 0 0 12px var(--green-glow);
+    }
+
+    .step .label {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-connector {
+      width: 2px;
+      height: 18px;
+      background: linear-gradient(180deg, var(--green-primary), var(--border-strong));
+      margin-left: 16px;
+    }
+
+    /* Mock UI Window Frame */
+    .mock {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      box-shadow: var(--shadow-md);
+      margin: 24px 0 28px;
+      overflow: hidden;
+    }
+
+    .mock-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .mock-bar i {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .mock-bar i:nth-child(1) {
+      background: #ff5f56;
+    }
+
+    .mock-bar i:nth-child(2) {
+      background: #ffbd2e;
+    }
+
+    .mock-bar i:nth-child(3) {
+      background: #27c93f;
+    }
+
+    .mock-body {
+      padding: 24px 28px;
+    }
+
+    .mock-title {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 22px;
+      margin: 0 0 4px;
+      color: var(--text-main);
+      letter-spacing: -.01em;
+    }
+
+    .mock-sub {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin: 0 0 18px;
+    }
+
+    .mock-tags {
+      margin-bottom: 18px;
+    }
+
+    .mock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 14px;
+    }
+
+    .mock-stat {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      background: var(--bg-subtle);
+    }
+
+    .mock-stat .v {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 24px;
+      color: var(--green-primary);
+      line-height: 1.1;
+    }
+
+    .mock-stat .k {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: 4px;
+    }
+
+    .mock-footer {
+      padding: 14px 28px;
+      border-top: 1px solid var(--border-color);
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      color: var(--text-soft);
+      background: var(--bg-subtle);
+    }
+
+    /* Compare Side-by-Side Panels */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin: 26px 0 28px;
+    }
+
+    @media (max-width: 640px) {
+      .compare {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel.no {
+      background: var(--red-bg);
+      border-color: var(--red-border);
+    }
+
+    .panel.yes {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+    }
+
+    .panel .ptitle {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .panel.no .ptitle {
+      color: var(--red-primary);
+    }
+
+    .panel.yes .ptitle {
+      color: var(--green-primary);
+    }
+
+    .flowline {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+
+    /* Core Philosophy Quote Block */
+    .callout {
+      margin: 32px 0 24px;
+      padding: 24px 28px;
+      border-left: 6px solid var(--green-primary);
+      background: var(--green-bg);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+      border-top: 1px solid var(--green-border);
+      border-right: 1px solid var(--green-border);
+      border-bottom: 1px solid var(--green-border);
+    }
+
+    /* Tree Diagram Container */
+    .tree {
+      margin: 32px 0 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .tree .row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .tree .node-box {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      padding: 11px 20px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .tree .node-box:hover {
+      transform: translateY(-2px);
+    }
+
+    .tree .node-box.core {
+      background: var(--text-main);
+      color: var(--bg-base);
+      font-weight: 800;
+      border-color: var(--text-main);
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+    }
+
+    .tree .node-box.accent {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+      color: var(--green-primary);
+      font-weight: 700;
+    }
+
+    .tree .connector {
+      width: 2px;
+      height: 20px;
+      background: var(--border-strong);
+    }
+
+    .tree .connector-wide {
+      position: relative;
+      width: 80%;
+      max-width: 540px;
+      height: 20px;
+    }
+
+    .tree .connector-wide::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border-strong);
+    }
+
+    .tree .connector-wide::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 100%;
+      background: var(--border-strong);
+    }
+
+    /* Text Tree Block */
+    .role-tree {
+      margin: 22px 0 24px;
+      font-family: var(--font-mono);
+      font-size: 14.5px;
+      line-height: 2.1;
+      color: var(--text-main);
+      background: var(--bg-subtle);
+      padding: 18px 24px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .role-tree .rt-root {
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--green-primary);
+    }
+
+    .role-tree .rt-item {
+      padding-left: 28px;
+      position: relative;
+      color: var(--text-soft);
+    }
+
+    .role-tree .rt-item::before {
+      content: "├──";
+      position: absolute;
+      left: 0;
+      color: var(--text-muted);
+    }
+
+    .role-tree .rt-item.last::before {
+      content: "└──";
+    }
+
+    /* Code / Architecture Block */
+    .code-block {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      color: var(--green-light);
+      overflow-x: auto;
+      margin: 20px 0;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 50px 0;
+    }
+
+    footer.doc-footer {
+      padding: 56px 80px 64px;
+      text-align: center;
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border-color);
+    }
+
+    footer.doc-footer .fmark {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-muted);
+      letter-spacing: .08em;
+    }
+
+    /* Back to Top */
+    #back-to-top {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--green-primary);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--green-glow);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 99;
+    }
+
+    #back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #back-to-top:hover {
+      transform: translateY(-3px) scale(1.06);
+    }
+
+    /* Responsive Adjustments */
+    .nav-toggle {
+      display: none;
+    }
+
+    #nav-check {
+      display: none;
+    }
+
+    @media (max-width: 960px) {
+      .app-shell {
+        display: block;
+      }
+
+      .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 18px;
+        top: 0;
+      }
+
+      .nav-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--text-main);
+        padding: 8px 4px;
+        font-weight: 700;
+      }
+
+      .nav-body {
+        display: none;
+        margin-top: 16px;
+      }
+
+      #nav-check:checked~.nav-body {
+        display: block;
+      }
+
+      .top-toolbar {
+        padding: 0 16px;
+      }
+
+      .cover-banner,
+      .doc-header,
+      .content,
+      footer.doc-footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      section.sec {
+        padding-left: 28px;
+        margin-left: 4px;
+      }
+
+      section.sec::before {
+        left: -8px;
+      }
+    }
+
+    @media print {
+
+      .top-toolbar,
+      .sidebar,
+      #progress-bar,
+      #back-to-top,
+      .anchor-btn {
+        display: none !important;
+      }
+
+      .app-shell {
+        display: block;
+      }
+
+      .main-workspace {
+        width: 100%;
+      }
+
+      .cover-banner,
+      .doc-header,
+      .content {
+        padding: 20px !important;
+      }
+
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="progress-bar"></div>
+
+  <!-- Top Toolbar Navigation Header -->
+  <header class="top-toolbar">
+    <div class="brand-group">
+      <a href="#" class="brand-logo"><span class="dot"></span> PoOS MASTER PRD</a>
+      <span class="doc-badge-title">Final Unified Product Requirements &amp; Architecture Document</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="action-btn" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none;">
+          <path
+            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" />
+        </svg>
+        <svg id="theme-icon-moon" viewBox="0 0 24 24">
+          <path
+            d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
+        </svg>
+        <span id="theme-label">Theme</span>
+      </button>
+      <button class="action-btn" onclick="window.print()" title="Print or Export PDF">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
+        </svg>
+        <span>Print</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+
+    <!-- Sticky Sidebar Navigation Drawer -->
+    <aside class="sidebar" id="main-sidebar">
+      <div class="brand-sidebar-header"><span class="dot"></span> PoOS · Master Index</div>
+
+      <div class="sidebar-search">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
+        <input type="text" id="toc-search" placeholder="Search spec sections..." onkeyup="filterToc()">
+      </div>
+
+      <label class="nav-toggle" for="nav-check">Contents <span>▾</span></label>
+      <input type="checkbox" id="nav-check" checked>
+      <div class="nav-body">
+
+        <div class="nav-group-title"><span>Part I</span>Platform Vision &amp; Scope</div>
+        <ul class="toc-list" id="toc-part1">
+          <li><a href="#sec-01" class="toc-link"><span class="n">01</span> Overview &amp; Concept</a></li>
+          <li><a href="#sec-02" class="toc-link"><span class="n">02</span> Core Philosophy</a></li>
+          <li><a href="#sec-03" class="toc-link"><span class="n">03</span> Platform Scope</a></li>
+          <li><a href="#sec-04" class="toc-link"><span class="n">04</span> Scope Restrictions</a></li>
+          <li><a href="#sec-05" class="toc-link"><span class="n">05</span> Ecosystem User Roles</a></li>
+        </ul>
+
+        <div class="nav-group-title"><span>Part II</span>User Roles &amp; Portals</div>
+        <ul class="toc-list" id="toc-part2">
+          <li><a href="#sec-06" class="toc-link"><span class="n">06</span> Student Role</a></li>
+          <li><a href="#sec-07" class="toc-link"><span class="n">07</span> Student Dashboard</a></li>
+          <li><a href="#sec-08" class="toc-link"><span class="n">08</span> Student Super Profile</a></li>
+          <li><a href="#sec-09" class="toc-link"><span class="n">09</span> Student Verification</a></li>
+          <li><a href="#sec-10" class="toc-link"><span class="n">10</span> College Admin Portal</a></li>
+          <li><a href="#sec-11" class="toc-link"><span class="n">11</span> College Dashboard</a></li>
+          <li><a href="#sec-12" class="toc-link"><span class="n">12</span> College Departments</a></li>
+          <li><a href="#sec-13" class="toc-link"><span class="n">13</span> College Projects</a></li>
+          <li><a href="#sec-14" class="toc-link"><span class="n">14</span> Mentor / Professional Role</a></li>
+          <li><a href="#sec-15" class="toc-link"><span class="n">15</span> Mentor Profile &amp; Discovery</a></li>
+        </ul>
+
+        <div class="nav-group-title"><span>Part III</span>Projects &amp; Contributions</div>
+        <ul class="toc-list" id="toc-part3">
+          <li><a href="#sec-16" class="toc-link"><span class="n">16</span> Project System &amp; Rights</a></li>
+          <li><a href="#sec-17" class="toc-link"><span class="n">17</span> Project Types</a></li>
+          <li><a href="#sec-18" class="toc-link"><span class="n">18</span> Project Creation Metadata</a></li>
+          <li><a href="#sec-19" class="toc-link"><span class="n">19</span> Project Lifecycle</a></li>
+          <li><a href="#sec-20" class="toc-link"><span class="n">20</span> Project Workspace Features</a></li>
+          <li><a href="#sec-21" class="toc-link"><span class="n">21</span> Contribution System</a></li>
+          <li><a href="#sec-22" class="toc-link"><span class="n">22</span> GitHub Integration</a></li>
+          <li><a href="#sec-23" class="toc-link"><span class="n">23</span> Contribution Engine</a></li>
+          <li><a href="#sec-24" class="toc-link"><span class="n">24</span> Extensible Skill System</a></li>
+          <li><a href="#sec-25" class="toc-link"><span class="n">25</span> Reputation Engine</a></li>
+        </ul>
+
+        <div class="nav-group-title"><span>Part IV</span>Talent Discovery &amp; Connection</div>
+        <ul class="toc-list" id="toc-part4">
+          <li><a href="#sec-26" class="toc-link"><span class="n">26</span> IT vs Non-IT Companies</a></li>
+          <li><a href="#sec-27" class="toc-link"><span class="n">27</span> IT Company Role</a></li>
+          <li><a href="#sec-28" class="toc-link"><span class="n">28</span> IT Talent Search</a></li>
+          <li><a href="#sec-29" class="toc-link"><span class="n">29</span> Non-IT Company Role</a></li>
+          <li><a href="#sec-31" class="toc-link"><span class="n">31</span> Industry Talent Discovery</a></li>
+          <li><a href="#sec-32" class="toc-link"><span class="n">32</span> Talent Profile for Companies</a></li>
+          <li><a href="#sec-33" class="toc-link"><span class="n">33</span> Project-Based Discovery</a></li>
+          <li><a href="#sec-34" class="toc-link"><span class="n">34</span> Shortlist &amp; Direct Contact</a></li>
+          <li><a href="#sec-35" class="toc-link"><span class="n">35</span> NO JOB PORTAL Model</a></li>
+        </ul>
+
+        <div class="nav-group-title"><span>Part V</span>Recognition &amp; Ecosystem</div>
+        <ul class="toc-list" id="toc-part5">
+          <li><a href="#sec-36" class="toc-link"><span class="n">36</span> Ecosystem Leaderboards</a></li>
+          <li><a href="#sec-37" class="toc-link"><span class="n">37</span> Certificates</a></li>
+          <li><a href="#sec-38" class="toc-link"><span class="n">38</span> Badges &amp; Recognition</a></li>
+          <li><a href="#sec-39" class="toc-link"><span class="n">39</span> Events &amp; Meetups</a></li>
+          <li><a href="#sec-40" class="toc-link"><span class="n">40</span> Notifications &amp; Search</a></li>
+        </ul>
+
+        <div class="nav-group-title"><span>Part VI</span>Technical Architecture</div>
+        <ul class="toc-list" id="toc-part6">
+          <li><a href="#sec-41" class="toc-link"><span class="n">41</span> Database Architecture</a></li>
+          <li><a href="#sec-42" class="toc-link"><span class="n">42</span> Company Types &amp; Schema</a></li>
+          <li><a href="#sec-43" class="toc-link"><span class="n">43</span> Role-Based Access Control</a></li>
+          <li><a href="#sec-44" class="toc-link"><span class="n">44</span> Dashboard Differentiation</a></li>
+          <li><a href="#sec-45" class="toc-link"><span class="n">45</span> Recommended Tech Stack</a></li>
+          <li><a href="#sec-46" class="toc-link"><span class="n">46</span> Search (OpenSearch)</a></li>
+          <li><a href="#sec-47" class="toc-link"><span class="n">47</span> Redis &amp; Celery Stack</a></li>
+          <li><a href="#sec-48" class="toc-link"><span class="n">48</span> GitHub Sync Architecture</a></li>
+          <li><a href="#sec-49" class="toc-link"><span class="n">49</span> AI / ML Stack &amp; pgvector</a></li>
+          <li><a href="#sec-50" class="toc-link"><span class="n">50</span> File Storage &amp; WebSockets</a></li>
+          <li><a href="#sec-51" class="toc-link"><span class="n">51</span> Authentication &amp; Security</a></li>
+          <li><a href="#sec-52" class="toc-link"><span class="n">52</span> Recommendation Engine</a></li>
+          <li><a href="#sec-53" class="toc-link"><span class="n">53</span> AI Features Architecture</a></li>
+          <li><a href="#sec-54" class="toc-link"><span class="n">54</span> Performance System</a></li>
+        </ul>
+
+        <div class="nav-group-title"><span>Part VII</span>Execution &amp; Verification</div>
+        <ul class="toc-list" id="toc-part7">
+          <li><a href="#sec-55" class="toc-link"><span class="n">55</span> Development Order</a></li>
+          <li><a href="#sec-56" class="toc-link"><span class="n">56</span> AI Coding Agent Instructions</a></li>
+          <li><a href="#sec-57" class="toc-link"><span class="n">57</span> Final Product Test</a></li>
+          <li><a href="#sec-58" class="toc-link"><span class="n">58</span> Core PoOS Philosophy</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Canvas Workspace -->
+    <main class="main-workspace">
+
+      <!-- HERO BANNER (MINNALMONEY DESIGN SYSTEM) -->
+      <div class="cover-banner">
+        <div class="brandmark" style="margin-bottom:16px;">
+          <div class="mark">&lt;/&gt;</div>
+          <div class="brand-text">
+            <div class="name">PoOS Master Requirements</div>
+            <div class="sub">Project &amp; Technical Talent Discovery Platform</div>
+          </div>
+        </div>
+
+        <div class="eyebrow">High-Performance Ecosystem Master Specification</div>
+        <h1 style="font-family:var(--font-heading); font-weight:800; font-size:clamp(32px, 4.5vw, 54px); margin:8px 0;">
+          PoOS — Project &amp; <span
+            style="background:linear-gradient(135deg, #c9a227 0%, #e5b82e 50%, #00f5d4 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Technical
+            Talent Platform</span></h1>
+        <div class="tagline">CONTRIBUTION-DRIVEN TALENT ECOSYSTEM · BUILD → CONTRIBUTE → PROVE → GET DISCOVERED</div>
+
+        <p class="lead" style="max-width:64ch; color:var(--text-soft); font-size:17.5px; margin-top:16px;">
+          A contribution-driven ecosystem connecting students, colleges, mentors/professionals, IT companies, and non-IT
+          companies through real technical projects and demonstrated capabilities.
+        </p>
+
+        <div class="stat-row">
+          <div class="stat-eyebrow">Key Ecosystem Architectural Metrics</div>
+          <div class="stat">
+            <div class="num">5<span>Roles</span></div>
+            <div class="lbl">Student, College Admin, Mentor, IT &amp; Non-IT Company</div>
+          </div>
+          <div class="stat">
+            <div class="num">100%<span>Evidence</span></div>
+            <div class="lbl">Verified GitHub Commits, Merged PRs &amp; Code Reviews</div>
+          </div>
+          <div class="stat">
+            <div class="num">Dual<span>Discovery</span></div>
+            <div class="lbl">Direct Technical Candidate &amp; Project Workspace Search</div>
+          </div>
+          <div class="stat">
+            <div class="num">No<span>Job Portal</span></div>
+            <div class="lbl">No Job Postings, Resume Applications or Candidate Forms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CORE PHILOSOPHY CALLOUT -->
+      <div style="padding: 32px 80px 0;">
+        <div class="callout">
+          Don't ask students to apply for opportunities. Let their work create the opportunity.
+        </div>
+      </div>
+
+      <!-- PART I: PLATFORM VISION & SCOPE -->
+      <div class="doc-header" id="part-1-anchor">
+        <span class="doc-kicker">Part I</span>
+        <h2>Platform Vision, Philosophy &amp; Scope</h2>
+        <p>High-level platform objective, scope restrictions, and primary ecosystem roles.</p>
+      </div>
+
+      <div class="content">
+
+        <!-- SECTION 01 -->
+        <section class="sec" id="sec-01">
+          <h3><span class="idx">01</span> Platform Overview &amp; Core Concept <a href="#sec-01" class="anchor-btn"
+              onclick="copyAnchor('#sec-01', event)" title="Copy link">#</a></h3>
+          <p class="lead"><strong>PoOS (Project &amp; Open-source Opportunity System)</strong> is a contribution-driven
+            technical project collaboration and talent discovery platform designed to connect students, colleges,
+            mentors/professionals, IT companies, and non-IT companies through real technical projects and demonstrated
+            capabilities.</p>
+
+          <p>PoOS is <strong>NOT a traditional job portal</strong>.</p>
+
+          <p>The platform allows students and technical professionals to build their technical identity through:</p>
+          <ul>
+            <li>Real projects</li>
+            <li>Technical contributions</li>
+            <li>Technical skills</li>
+            <li>Technologies</li>
+            <li>Experience</li>
+            <li>GitHub activity</li>
+            <li>Achievements</li>
+            <li>Certificates</li>
+            <li>Project leadership</li>
+          </ul>
+
+          <p>Companies from both IT and non-IT industries can discover suitable technical professionals based on this
+            evidence and directly connect with them for technical opportunities.</p>
+        </section>
+
+        <!-- SECTION 02 -->
+        <section class="sec" id="sec-02">
+          <h3><span class="idx">02</span> Core Platform Philosophy <a href="#sec-02" class="anchor-btn"
+              onclick="copyAnchor('#sec-02', event)" title="Copy link">#</a></h3>
+          <p>The core philosophy of PoOS is:</p>
+          <div class="code-block" style="font-size:16px; text-align:center;">
+            "Don't ask students to apply for opportunities. Let their work create the opportunity."
+          </div>
+
+          <p>The core concept is:</p>
+          <div class="code-block" style="font-size:16px; text-align:center;">
+            Build → Contribute → Prove → Get Discovered
+          </div>
+
+          <p>Instead of the traditional recruitment pipeline:</p>
+          <div class="compare">
+            <div class="panel no">
+              <div class="ptitle">Traditional Model (NOT PoOS)</div>
+              <div class="flowline">Resume → Job Application → Screening → Recruitment Pipeline</div>
+            </div>
+            <div class="panel yes">
+              <div class="ptitle">PoOS Ecosystem Flow</div>
+              <div class="flowline">CREATE PROJECT → JOIN PROJECT → BUILD &amp; CONTRIBUTE → DEMONSTRATE SKILLS → BUILD
+                REPUTATION → SUPER PROFILE → COMPANY DISCOVERS TALENT → COMPANY CONTACTS PERSON → REAL-WORLD OPPORTUNITY
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 03 -->
+        <section class="sec" id="sec-03">
+          <h3><span class="idx">03</span> Platform Objective &amp; Scope <a href="#sec-03" class="anchor-btn"
+              onclick="copyAnchor('#sec-03', event)" title="Copy link">#</a></h3>
+          <p>The primary objective of PoOS is to create a technical ecosystem where a person's <strong>actual technical
+              work becomes a major part of their professional identity</strong>.</p>
+
+          <p>The platform helps each ecosystem member:</p>
+          <ul>
+            <li><strong>Students:</strong> Build technical experience and demonstrate their capabilities.</li>
+            <li><strong>Colleges:</strong> Manage students, departments, projects, participation and technical
+              activities.</li>
+            <li><strong>Mentors:</strong> Guide students, review contributions, and contribute technical expertise.</li>
+            <li><strong>IT Companies:</strong> Discover technical professionals for their software and engineering
+              requirements.</li>
+            <li><strong>Non-IT Companies:</strong> Discover technical and business contributors for their internal
+              technical and industry project requirements.</li>
+          </ul>
+
+          <div class="subhead">Technical Roles Covered</div>
+          <p>PoOS supports technical roles such as:</p>
+          <div class="pill-row">
+            <span class="pill">Software Developer</span>
+            <span class="pill">Frontend Developer</span>
+            <span class="pill">Backend Developer</span>
+            <span class="pill">Full Stack Developer</span>
+            <span class="pill">Web Developer</span>
+            <span class="pill">Mobile Developer</span>
+            <span class="pill">Python Developer</span>
+            <span class="pill">Java Developer</span>
+            <span class="pill">JavaScript Developer</span>
+            <span class="pill">TypeScript Developer</span>
+            <span class="pill">AI Engineer</span>
+            <span class="pill">Machine Learning Engineer</span>
+            <span class="pill">AI/ML Engineer</span>
+            <span class="pill">Data Scientist</span>
+            <span class="pill">Data Analyst</span>
+            <span class="pill">Data Engineer</span>
+            <span class="pill">Cloud Engineer</span>
+            <span class="pill">DevOps Engineer</span>
+            <span class="pill">Cybersecurity Engineer</span>
+            <span class="pill">Database Developer</span>
+            <span class="pill">Blockchain Developer</span>
+            <span class="pill">Technical Researcher</span>
+            <span class="pill">Open Source Contributor</span>
+          </div>
+          <p>The technical role and skill system is extensible so administrators can add new technical roles in the
+            future.</p>
+        </section>
+
+        <!-- SECTION 04 -->
+        <section class="sec" id="sec-04">
+          <h3><span class="idx">04</span> Important Scope Restrictions <a href="#sec-04" class="anchor-btn"
+              onclick="copyAnchor('#sec-04', event)" title="Copy link">#</a></h3>
+          <p>The following scope rules are mandatory:</p>
+
+          <div class="role-grid">
+            <div class="role-card" style="border-color:var(--red-border); background:var(--red-bg);">
+              <h4 style="color:var(--red-primary);">No Faculty Role</h4>
+              <p>PoOS will have <strong>College Admin</strong> as the college-level administrator. Do NOT create a
+                Faculty role or Faculty dashboard.</p>
+            </div>
+
+            <div class="role-card" style="border-color:var(--red-border); background:var(--red-bg);">
+              <h4 style="color:var(--red-primary);">No General Job Portal</h4>
+              <p>PoOS will not function as a conventional job portal. Do NOT implement Job Postings, Job Listings, Apply
+                Now, Job Applications, or Resume Applications.</p>
+            </div>
+
+            <div class="role-card" style="border-color:var(--red-border); background:var(--red-bg);">
+              <h4 style="color:var(--red-primary);">No Innovation &amp; Incubation Module</h4>
+              <p>Remove Innovation &amp; Incubation completely from the Student and College Portal scope.</p>
+            </div>
+
+            <div class="role-card" style="border-color:var(--red-border); background:var(--red-bg);">
+              <h4 style="color:var(--red-primary);">Testing / QA Scope</h4>
+              <p>Testing / QA is NOT a platform scope or talent category. Do not create a Testing role, QA role, Testing
+                dashboard, or QA talent category module.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 05 -->
+        <section class="sec" id="sec-05">
+          <h3><span class="idx">05</span> Ecosystem User Roles <a href="#sec-05" class="anchor-btn"
+              onclick="copyAnchor('#sec-05', event)" title="Copy link">#</a></h3>
+          <p>The platform must have exactly these five primary ecosystem roles:</p>
+
+          <div class="role-tree">
+            <div class="rt-root">PoOS</div>
+            <div class="rt-item">Student</div>
+            <div class="rt-item">College Admin</div>
+            <div class="rt-item">Mentor / Professional</div>
+            <div class="rt-item">IT Company</div>
+            <div class="rt-item last">Non-IT Company</div>
+          </div>
+
+          <div class="tree">
+            <div class="node-box core">PoOS Ecosystem</div>
+            <div class="connector"></div>
+            <div class="connector-wide"></div>
+            <div class="row">
+              <div class="node-box">Student</div>
+              <div class="node-box">College Admin</div>
+              <div class="node-box">Mentor / Professional</div>
+              <div class="node-box">IT Company</div>
+              <div class="node-box">Non-IT Company</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- PART II: USER ROLES & PORTALS -->
+      <div class="doc-header" id="part-2-anchor">
+        <span class="doc-kicker">Part II</span>
+        <h2>User Roles, Portals &amp; Dashboards</h2>
+        <p>Detailed capabilities for Students, College Admins, Mentors, and Companies.</p>
+      </div>
+
+      <div class="content">
+
+        <!-- SECTION 06 -->
+        <section class="sec" id="sec-06">
+          <h3><span class="idx">06</span> Student Role <a href="#sec-06" class="anchor-btn"
+              onclick="copyAnchor('#sec-06', event)" title="Copy link">#</a></h3>
+          <p>Students are the primary contributors in the PoOS ecosystem.</p>
+          <p>Students can:</p>
+          <ul>
+            <li>Create projects</li>
+            <li>Discover projects</li>
+            <li>Join projects</li>
+            <li>Create teams</li>
+            <li>Contribute to projects</li>
+            <li>Complete tasks</li>
+            <li>Solve issues</li>
+            <li>Submit pull requests</li>
+            <li>Participate in code reviews</li>
+            <li>Join open-source projects</li>
+            <li>Join college projects</li>
+            <li>Join mentor projects</li>
+            <li>Build skills</li>
+            <li>Earn badges</li>
+            <li>Earn certificates</li>
+            <li>Build reputation</li>
+            <li>Participate in events</li>
+            <li>Connect with mentors</li>
+            <li>Be discovered by companies</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 07 -->
+        <section class="sec" id="sec-07">
+          <h3><span class="idx">07</span> Student Dashboard <a href="#sec-07" class="anchor-btn"
+              onclick="copyAnchor('#sec-07', event)" title="Copy link">#</a></h3>
+          <p>The student dashboard focuses on: <strong>BUILD → CONTRIBUTE → LEARN → PROVE</strong></p>
+
+          <div class="mock">
+            <div class="mock-bar"><i></i><i></i><i></i></div>
+            <div class="mock-body">
+              <p class="mock-title">Student Dashboard</p>
+              <p class="mock-sub">Contribution-Centric Overview</p>
+              <div class="mock-grid">
+                <div class="mock-stat">
+                  <div class="v">785</div>
+                  <div class="k">Contribution Score</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">12</div>
+                  <div class="k">Active Projects</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">342</div>
+                  <div class="k">Commits</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">86</div>
+                  <div class="k">Merged PRs</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">124</div>
+                  <div class="k">Issues Solved</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">42</div>
+                  <div class="k">Code Reviews</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">#3</div>
+                  <div class="k">College Rank</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">#18</div>
+                  <div class="k">Global Rank</div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-footer">
+              Display: Projects, Active Projects, Contributions, Commits, Pull Requests, Merged PRs, Issues Solved, Code
+              Reviews, Skills, Achievements, Certificates, Rankings, Recommended Projects, Recommended Mentors.
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 08 -->
+        <section class="sec" id="sec-08">
+          <h3><span class="idx">08</span> Student Super Profile <a href="#sec-08" class="anchor-btn"
+              onclick="copyAnchor('#sec-08', event)" title="Copy link">#</a></h3>
+          <p>The Super Profile is the student's primary proof of capability. It is dynamically generated from actual
+            ecosystem activity.</p>
+
+          <div class="role-grid">
+            <div class="role-card">
+              <h4>Basic Information</h4>
+              <ul>
+                <li>Name</li>
+                <li>Profile photo</li>
+                <li>College</li>
+                <li>Department</li>
+                <li>Course</li>
+                <li>Academic Year</li>
+                <li>Location</li>
+              </ul>
+            </div>
+
+            <div class="role-card">
+              <h4>Skills &amp; Links</h4>
+              <ul>
+                <li>Technical &amp; Business Skills</li>
+                <li>GitHub Profile</li>
+                <li>LinkedIn Profile</li>
+                <li>Portfolio Website</li>
+              </ul>
+            </div>
+
+            <div class="role-card">
+              <h4>Projects &amp; Contributions</h4>
+              <ul>
+                <li>Project Name &amp; Role</li>
+                <li>Technologies Used</li>
+                <li>Commits, PRs, Merged PRs</li>
+                <li>Issues Solved &amp; Reviews</li>
+                <li>Project Leadership</li>
+              </ul>
+            </div>
+
+            <div class="role-card">
+              <h4>Achievements</h4>
+              <ul>
+                <li>Badges</li>
+                <li>Certificates</li>
+                <li>Awards</li>
+                <li>Milestones</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 09 -->
+        <section class="sec" id="sec-09">
+          <h3><span class="idx">09</span> Student Registration &amp; Verification Flow <a href="#sec-09"
+              class="anchor-btn" onclick="copyAnchor('#sec-09', event)" title="Copy link">#</a></h3>
+          <p>College Admin verifies and manages students belonging to the institution.</p>
+          <div class="stepper">
+            <div class="step">
+              <div class="node">1</div>
+              <div class="label">Student Registration</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">2</div>
+              <div class="label">Select College</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">3</div>
+              <div class="label">Account Created</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">4</div>
+              <div class="label">College Admin Review</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">5</div>
+              <div class="label">Verified Student</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 10 -->
+        <section class="sec" id="sec-10">
+          <h3><span class="idx">10</span> College Admin Portal <a href="#sec-10" class="anchor-btn"
+              onclick="copyAnchor('#sec-10', event)" title="Copy link">#</a></h3>
+          <p>College is represented through <strong>College Admin</strong>, who manages the institution's PoOS
+            participation.</p>
+          <p>College Admin can:</p>
+          <ul>
+            <li>Manage college profile</li>
+            <li>Manage departments</li>
+            <li>Verify students</li>
+            <li>Manage student records</li>
+            <li>Create college projects</li>
+            <li>Monitor participation</li>
+            <li>Manage technical events</li>
+            <li>Manage certificates</li>
+            <li>View analytics</li>
+            <li>View rankings</li>
+          </ul>
+          <p>College Admin does NOT control the entire PoOS ecosystem.</p>
+        </section>
+
+        <!-- SECTION 11 -->
+        <section class="sec" id="sec-11">
+          <h3><span class="idx">11</span> College Dashboard <a href="#sec-11" class="anchor-btn"
+              onclick="copyAnchor('#sec-11', event)" title="Copy link">#</a></h3>
+          <p>College dashboard analytics include:</p>
+          <ul>
+            <li>Total Students &amp; Verified Students</li>
+            <li>Active Students</li>
+            <li>Departments</li>
+            <li>Active Projects &amp; Projects Created / Joined</li>
+            <li>Student Contributions &amp; Merged PRs</li>
+            <li>Active Developers</li>
+            <li>Certificates &amp; Events</li>
+            <li>Department Activity</li>
+            <li>Student &amp; College Ranking</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 12 -->
+        <section class="sec" id="sec-12">
+          <h3><span class="idx">12</span> College Departments <a href="#sec-12" class="anchor-btn"
+              onclick="copyAnchor('#sec-12', event)" title="Copy link">#</a></h3>
+          <p>College Admin can create configurable departments:</p>
+          <div class="pill-row">
+            <span class="pill">Computer Science</span>
+            <span class="pill">Information Technology</span>
+            <span class="pill">Commerce</span>
+            <span class="pill">Management</span>
+            <span class="pill">Mechanical</span>
+            <span class="pill">Civil</span>
+            <span class="pill">Electronics</span>
+            <span class="pill">Electrical</span>
+            <span class="pill">Biotechnology</span>
+            <span class="pill">Finance</span>
+            <span class="pill">Other</span>
+          </div>
+          <p>Each department displays students, projects, contributions, activities, and rankings.</p>
+        </section>
+
+        <!-- SECTION 13 -->
+        <section class="sec" id="sec-13">
+          <h3><span class="idx">13</span> College Projects <a href="#sec-13" class="anchor-btn"
+              onclick="copyAnchor('#sec-13', event)" title="Copy link">#</a></h3>
+          <p>College Admin can create projects (e.g. <em>Smart Campus Management System</em>). College ownership must
+            NOT automatically restrict project participation.</p>
+          <p>Participation is open to:</p>
+          <ul>
+            <li>Students from the college</li>
+            <li>Students from other colleges</li>
+            <li>Independent developers</li>
+            <li>Mentors &amp; Professionals</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 14 -->
+        <section class="sec" id="sec-14">
+          <h3><span class="idx">14</span> Mentor / Professional Role <a href="#sec-14" class="anchor-btn"
+              onclick="copyAnchor('#sec-14', event)" title="Copy link">#</a></h3>
+          <p>Mentors and working professionals can:</p>
+          <ul>
+            <li>Create projects</li>
+            <li>Join projects</li>
+            <li>Mentor students across colleges</li>
+            <li>Review contributions</li>
+            <li>Create tasks</li>
+            <li>Conduct knowledge sessions &amp; live/recorded sessions</li>
+            <li>Conduct mock interviews</li>
+            <li>Track mentees</li>
+            <li>Provide project guidance</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 15 -->
+        <section class="sec" id="sec-15">
+          <h3><span class="idx">15</span> Mentor Profile &amp; Discovery <a href="#sec-15" class="anchor-btn"
+              onclick="copyAnchor('#sec-15', event)" title="Copy link">#</a></h3>
+          <p>Mentor Profile Displays: Name, Title, Experience, Industry, Skills, Technologies, Projects, Expertise,
+            Mentoring Topics, Mentees Count, Sessions Conducted, Achievements, LinkedIn, Portfolio.</p>
+          <p>Students can discover mentors by searching: Skill, Industry, Experience, Technology, Domain, or Mentoring
+            Topic.</p>
+        </section>
+
+      </div>
+
+      <!-- PART III: PROJECTS & CONTRIBUTIONS -->
+      <div class="doc-header" id="part-3-anchor">
+        <span class="doc-kicker">Part III</span>
+        <h2>Project System, Lifecycle &amp; Contribution Engine</h2>
+        <p>Project creation rights, types, lifecycle, GitHub sync, and contribution tracking.</p>
+      </div>
+
+      <div class="content">
+
+        <!-- SECTION 16 -->
+        <section class="sec" id="sec-16">
+          <h3><span class="idx">16</span> Project Creation Rights <a href="#sec-16" class="anchor-btn"
+              onclick="copyAnchor('#sec-16', event)" title="Copy link">#</a></h3>
+          <p>Projects can be created by any of the following ecosystem members:</p>
+          <div class="role-grid">
+            <div class="role-card">
+              <h4>Student</h4>
+              <ul>
+                <li>Personal project</li>
+                <li>Student team project</li>
+                <li>Open-source project</li>
+                <li>Technical project</li>
+                <li>College project</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <h4>College Admin</h4>
+              <ul>
+                <li>College project</li>
+                <li>Department project</li>
+                <li>Community project</li>
+                <li>Research project</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <h4>Mentor / Professional</h4>
+              <ul>
+                <li>Open-source project</li>
+                <li>Industry project</li>
+                <li>Technical challenge</li>
+                <li>Mentorship project</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <h4>IT / Non-IT Company</h4>
+              <ul>
+                <li>Software project</li>
+                <li>Product prototype</li>
+                <li>Business / Industry project</li>
+                <li>Data analysis project</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 17 -->
+        <section class="sec" id="sec-17">
+          <h3><span class="idx">17</span> Project Types <a href="#sec-17" class="anchor-btn"
+              onclick="copyAnchor('#sec-17', event)" title="Copy link">#</a></h3>
+          <p>Every PoOS project must have a clear project purpose:</p>
+          <div class="pill-row">
+            <span class="pill green">Software Project</span>
+            <span class="pill green">Web Application</span>
+            <span class="pill green">Mobile Application</span>
+            <span class="pill green">AI/ML Project</span>
+            <span class="pill green">Data Project</span>
+            <span class="pill green">Open Source Project</span>
+            <span class="pill green">Cloud / DevOps Project</span>
+            <span class="pill green">Cybersecurity Project</span>
+            <span class="pill cyan">Business Project</span>
+            <span class="pill cyan">Industry Project</span>
+            <span class="pill cyan">Data Analysis Project</span>
+            <span class="pill cyan">Finance Project</span>
+            <span class="pill cyan">Marketing Project</span>
+            <span class="pill cyan">Operations Project</span>
+            <span class="pill cyan">Supply Chain Project</span>
+            <span class="pill cyan">Research Project</span>
+          </div>
+        </section>
+
+        <!-- SECTION 18 -->
+        <section class="sec" id="sec-18">
+          <h3><span class="idx">18</span> Project Creation Metadata <a href="#sec-18" class="anchor-btn"
+              onclick="copyAnchor('#sec-18', event)" title="Copy link">#</a></h3>
+          <p>Project creation must include: Project Name, Description, Project Type, Technical &amp; Business Skills,
+            Technologies, Difficulty Level, Owner, Repository Link, Goals, Requirements, Required Contributors,
+            Start/End Date, and Visibility (Public, Private, Invite Only).</p>
+        </section>
+
+        <!-- SECTION 19 -->
+        <section class="sec" id="sec-19">
+          <h3><span class="idx">19</span> Project Lifecycle <a href="#sec-19" class="anchor-btn"
+              onclick="copyAnchor('#sec-19', event)" title="Copy link">#</a></h3>
+          <div class="stepper">
+            <div class="step">
+              <div class="node">1</div>
+              <div class="label">CREATE</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">2</div>
+              <div class="label">PUBLISH</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">3</div>
+              <div class="label">DISCOVER</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">4</div>
+              <div class="label">JOIN</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">5</div>
+              <div class="label">TASKS / ISSUES</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">6</div>
+              <div class="label">CONTRIBUTIONS</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">7</div>
+              <div class="label">REVIEW</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">8</div>
+              <div class="label">MERGE / APPROVAL</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">9</div>
+              <div class="label">RELEASE</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">10</div>
+              <div class="label">REPUTATION &amp; EVIDENCE</div>
+            </div>
+          </div>
+          <p>Projects remain active so contributors can continue participating after releases.</p>
+        </section>
+
+        <!-- SECTION 20 -->
+        <section class="sec" id="sec-20">
+          <h3><span class="idx">20</span> Project Workspace Features <a href="#sec-20" class="anchor-btn"
+              onclick="copyAnchor('#sec-20', event)" title="Copy link">#</a></h3>
+          <p>Every project workspace includes:</p>
+          <div class="role-grid">
+            <div class="role-card">
+              <h4>Management</h4>
+              <ul>
+                <li>Overview &amp; Roadmap</li>
+                <li>Tasks &amp; Issues</li>
+                <li>Contributors List</li>
+                <li>Project Roles &amp; Permissions</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <h4>Collaboration</h4>
+              <ul>
+                <li>Discussions</li>
+                <li>Feature Requests</li>
+                <li>Documentation</li>
+                <li>Activity Feed</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <h4>Code &amp; Contributions</h4>
+              <ul>
+                <li>Pull Requests</li>
+                <li>Code Reviews</li>
+                <li>Releases</li>
+                <li>Repository Synchronization</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 21 -->
+        <section class="sec" id="sec-21">
+          <h3><span class="idx">21</span> Contribution Tracking System <a href="#sec-21" class="anchor-btn"
+              onclick="copyAnchor('#sec-21', event)" title="Copy link">#</a></h3>
+          <p>PoOS tracks both technical and non-technical contributions:</p>
+          <div class="role-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="role-card">
+              <h4>Technical Contributions</h4>
+              <ul>
+                <li>Commits</li>
+                <li>Pull Requests &amp; Merged PRs</li>
+                <li>Issues Solved</li>
+                <li>Code Reviews</li>
+                <li>Technical Tasks &amp; Documentation</li>
+              </ul>
+            </div>
+            <div class="role-card">
+              <h4>Non-Technical Contributions</h4>
+              <ul>
+                <li>Business &amp; Market Research</li>
+                <li>Financial Analysis</li>
+                <li>Marketing &amp; Design</li>
+                <li>Data Analysis &amp; Operations</li>
+                <li>Project Management &amp; Strategy</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 22 -->
+        <section class="sec" id="sec-22">
+          <h3><span class="idx">22</span> GitHub Integration Architecture <a href="#sec-22" class="anchor-btn"
+              onclick="copyAnchor('#sec-22', event)" title="Copy link">#</a></h3>
+          <p>Support GitHub OAuth, GitHub REST API, GitHub GraphQL API, and GitHub Webhooks.</p>
+          <p>Synchronize repositories, commits, PRs, merged PRs, issues, code reviews, languages, and activity feeds.
+            GitHub activity is processed asynchronously via background workers and must never be fabricated.</p>
+        </section>
+
+        <!-- SECTION 23 -->
+        <section class="sec" id="sec-23">
+          <h3><span class="idx">23</span> Contribution Engine Architecture <a href="#sec-23" class="anchor-btn"
+              onclick="copyAnchor('#sec-23', event)" title="Copy link">#</a></h3>
+          <div class="stepper">
+            <div class="step">
+              <div class="node">1</div>
+              <div class="label">GitHub / Ecosystem Events</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">2</div>
+              <div class="label">Contribution Collector</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">3</div>
+              <div class="label">Contribution Engine</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">4</div>
+              <div class="label">Evidence Store (PostgreSQL / pgvector)</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">5</div>
+              <div class="label">Skill Engine &amp; Reputation Engine</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">6</div>
+              <div class="label">Super Profile Update</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 24 -->
+        <section class="sec" id="sec-24">
+          <h3><span class="idx">24</span> Extensible Skill System <a href="#sec-24" class="anchor-btn"
+              onclick="copyAnchor('#sec-24', event)" title="Copy link">#</a></h3>
+          <div class="role-grid">
+            <div class="role-card">
+              <h4>Technical Skills</h4>
+              <p>Python, Java, JavaScript, TypeScript, React, Next.js, FastAPI, Node.js, SQL, PostgreSQL, Docker, AWS,
+                AI/ML, Data Science, DevOps, Cybersecurity, UI/UX.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 25 -->
+        <section class="sec" id="sec-25">
+          <h3><span class="idx">25</span> Technical Reputation Engine <a href="#sec-25" class="anchor-btn"
+              onclick="copyAnchor('#sec-25', event)" title="Copy link">#</a></h3>
+          <p>Reputation is calculated using meaningful evidence: Projects, Contributions, Merged PRs, Issues Solved,
+            Code Reviews, Tasks, Project Leadership, Open Source work, and Mentor Verifications. Users are not ranked
+            purely on commit count.</p>
+        </section>
+
+      </div>
+
+      <!-- PART IV: IT & NON-IT TALENT DISCOVERY -->
+      <div class="doc-header" id="part-4-anchor">
+        <span class="doc-kicker">Part IV</span>
+        <h2>Company Portals &amp; Talent Discovery Engine</h2>
+        <p>Differentiating IT and Non-IT Company discovery flows, project-based discovery, and direct candidate
+          connection.</p>
+      </div>
+
+      <div class="content">
+
+        <!-- SECTION 26 -->
+        <section class="sec" id="sec-26">
+          <h3><span class="idx">26</span> Difference Between IT and Non-IT Companies <a href="#sec-26"
+              class="anchor-btn" onclick="copyAnchor('#sec-26', event)" title="Copy link">#</a></h3>
+          <p>The platform supports both company types with distinct use cases:</p>
+
+          <div class="role-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="role-card" style="border-color:var(--green-border);">
+              <h4 style="color:var(--green-light);">IT Companies</h4>
+              <p>Discover people for Software, Web, Mobile, AI/ML, Data Science, Cloud, DevOps, Cybersecurity, UI/UX,
+                Product Development, and Technical Project Collaboration.</p>
+              <p><strong>Evaluation:</strong> GitHub activity, Commits, PRs, Merged PRs, Issues, Code Reviews, Projects,
+                Technologies.</p>
+            </div>
+
+            <div class="role-card" style="border-color:var(--cyan-border);">
+              <h4 style="color:var(--cyan-primary);">Non-IT Companies</h4>
+              <p>Manufacturing, Banking, Finance, Healthcare, Retail, Logistics, Agriculture, Construction, FMCG, Media,
+                Consulting, etc.</p>
+              <p>Discover people for Business Analysis, Finance, Accounting, Marketing, Sales, Operations, HR, Supply
+                Chain, Data Analysis, Digital Transformation, and Research.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 27 -->
+        <section class="sec" id="sec-27">
+          <h3><span class="idx">27</span> IT Company Role &amp; Dashboard <a href="#sec-27" class="anchor-btn"
+              onclick="copyAnchor('#sec-27', event)" title="Copy link">#</a></h3>
+          <p>IT Company sections: Talent Discovery, Project Discovery, Technical Talent, Contributors, Shortlisted
+            Candidates, Contact Requests, Saved Searches.</p>
+        </section>
+
+        <!-- SECTION 28 -->
+        <section class="sec" id="sec-28">
+          <h3><span class="idx">28</span> IT Company Talent Search <a href="#sec-28" class="anchor-btn"
+              onclick="copyAnchor('#sec-28', event)" title="Copy link">#</a></h3>
+          <p>Filters: Technology, Skill, Projects, Contributions, Merged PRs, Commits, Issues, Code Reviews, Experience,
+            Project Leadership, College, Department.</p>
+        </section>
+
+        <!-- SECTION 29 -->
+        <section class="sec" id="sec-29">
+          <h3><span class="idx">29</span> Non-IT Company Role &amp; Dashboard <a href="#sec-29" class="anchor-btn"
+              onclick="copyAnchor('#sec-29', event)" title="Copy link">#</a></h3>
+          <p>Non-IT Company sections: Talent Discovery, Industry Projects, Business Projects, Data &amp; Analytics
+            Talent, Business Talent, Shortlisted Candidates, Contact Requests, Saved Profiles.</p>
+        </section>
+
+        <!-- SECTION 31 -->
+        <section class="sec" id="sec-31">
+          <h3><span class="idx">31</span> Industry-Based Talent Discovery <a href="#sec-31" class="anchor-btn"
+              onclick="copyAnchor('#sec-31', event)" title="Copy link">#</a></h3>
+          <p>Companies can filter by Industry (Banking, Finance, Automobile, Manufacturing, Healthcare, Retail,
+            Agriculture, Logistics, Construction, FMCG, Real Estate, Hospitality) and search for candidates with
+            verified industry project experience.</p>
+        </section>
+
+        <!-- SECTION 32 -->
+        <section class="sec" id="sec-32">
+          <h3><span class="idx">32</span> Company Talent Profile View <a href="#sec-32" class="anchor-btn"
+              onclick="copyAnchor('#sec-32', event)" title="Copy link">#</a></h3>
+          <div class="mock">
+            <div class="mock-bar"><i></i><i></i><i></i></div>
+            <div class="mock-body">
+              <p class="mock-title">SRI RAM</p>
+              <p class="mock-sub">Data &amp; Technology Contributor</p>
+              <div class="mock-tags">
+                <span class="pill">Python</span><span class="pill">SQL</span><span class="pill">Power BI</span><span
+                  class="pill">FastAPI</span>
+              </div>
+              <div class="mock-grid">
+                <div class="mock-stat">
+                  <div class="v">8</div>
+                  <div class="k">Projects</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">342</div>
+                  <div class="k">Contributions</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">124</div>
+                  <div class="k">Tasks Done</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">42</div>
+                  <div class="k">Reviews</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="v">3</div>
+                  <div class="k">Leadership</div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-footer">College: XXXX College · Verified Evidence-Based Profile</div>
+          </div>
+        </section>
+
+        <!-- SECTION 33 -->
+        <section class="sec" id="sec-33">
+          <h3><span class="idx">33</span> Project-Based Talent Discovery <a href="#sec-33" class="anchor-btn"
+              onclick="copyAnchor('#sec-33', event)" title="Copy link">#</a></h3>
+          <p>Companies can discover talent directly inside project workspaces by clicking <strong>VIEW
+              CONTRIBUTOR</strong> to inspect real contributions.</p>
+        </section>
+
+        <!-- SECTION 34 -->
+        <section class="sec" id="sec-34">
+          <h3><span class="idx">34</span> Company Shortlist &amp; Direct Contact <a href="#sec-34" class="anchor-btn"
+              onclick="copyAnchor('#sec-34', event)" title="Copy link">#</a></h3>
+          <p>Companies can shortlist profiles and send direct contact requests regarding Employment, Internships,
+            Freelance Work, Contract Work, Project Collaboration, or Technical Consulting. No public job posting is
+            published.</p>
+        </section>
+
+        <!-- SECTION 35 -->
+        <section class="sec" id="sec-35">
+          <h3><span class="idx">35</span> NO JOB PORTAL Model <a href="#sec-35" class="anchor-btn"
+              onclick="copyAnchor('#sec-35', event)" title="Copy link">#</a></h3>
+          <div class="compare">
+            <div class="panel no">
+              <div class="ptitle">STRICTLY PROHIBITED</div>
+              <div class="flowline">Post Job → Job Listings → Apply Now → Job Applications → Candidate Applications
+              </div>
+            </div>
+            <div class="panel yes">
+              <div class="ptitle">POOS DISCOVERY ENGINE</div>
+              <div class="flowline">Company → Discover Project → Discover Contributor → Verify Skills → View Profile →
+                Contact Person</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- PART V: RECOGNITION & ECOSYSTEM -->
+      <div class="doc-header" id="part-5-anchor">
+        <span class="doc-kicker">Part V</span>
+        <h2>Recognition, Leaderboards &amp; Community</h2>
+        <p>Student and college leaderboards, verified certificates, milestone badges, and technical events.</p>
+      </div>
+
+      <div class="content">
+
+        <!-- SECTION 36 -->
+        <section class="sec" id="sec-36">
+          <h3><span class="idx">36</span> Ecosystem Leaderboards <a href="#sec-36" class="anchor-btn"
+              onclick="copyAnchor('#sec-36', event)" title="Copy link">#</a></h3>
+          <div class="role-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="role-card">
+              <h4>Student Leaderboard</h4>
+              <p>Based on contributions, merged PRs, issues solved, reviews, project leadership, and community activity.
+              </p>
+            </div>
+            <div class="role-card">
+              <h4>College Leaderboard</h4>
+              <p>Based on student participation, contributions, active projects, active developers, and community
+                activity.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 37 -->
+        <section class="sec" id="sec-37">
+          <h3><span class="idx">37</span> Certificates &amp; Verification <a href="#sec-37" class="anchor-btn"
+              onclick="copyAnchor('#sec-37', event)" title="Copy link">#</a></h3>
+          <p>Certificates for Project Completion, Technical Contribution, Workshops, Events, Achievements, and
+            Mentorship. Include Certificate ID, Recipient, Issuer, Date, Verification Status, and Public Verification
+            URL.</p>
+        </section>
+
+        <!-- SECTION 38 -->
+        <section class="sec" id="sec-38">
+          <h3><span class="idx">38</span> Badges Engine <a href="#sec-38" class="anchor-btn"
+              onclick="copyAnchor('#sec-38', event)" title="Copy link">#</a></h3>
+          <p>Badges: First Contributor, Top Contributor, Project Leader, Open Source Contributor, Technical Contributor,
+            Business Contributor, Data Contributor, Mentor Achievement.</p>
+        </section>
+
+        <!-- SECTION 39 -->
+        <section class="sec" id="sec-39">
+          <h3><span class="idx">39</span> Events &amp; Meetups <a href="#sec-39" class="anchor-btn"
+              onclick="copyAnchor('#sec-39', event)" title="Copy link">#</a></h3>
+          <p>Hackathons, Open-source sprints, Workshops, Meetups, Knowledge sessions, Brainstorming sessions, Industry
+            sessions, and Technical sessions organized by College Admins, Mentors, or Companies.</p>
+        </section>
+
+        <!-- SECTION 40 -->
+        <section class="sec" id="sec-40">
+          <h3><span class="idx">40</span> Notifications &amp; Global Search <a href="#sec-40" class="anchor-btn"
+              onclick="copyAnchor('#sec-40', event)" title="Copy link">#</a></h3>
+          <p>Real-time and async notifications for invitations, task/issue assignments, reviews, certificates, and
+            company contact requests. Global search supporting People, Projects, Colleges, Mentors, Companies, Skills,
+            and Events.</p>
+        </section>
+
+      </div>
+
+      <!-- PART VI: TECHNICAL ARCHITECTURE -->
+      <div class="doc-header" id="part-6-anchor">
+        <span class="doc-kicker">Part VI</span>
+        <h2>Technical Architecture &amp; System Design</h2>
+        <p>Database schema, technology stack, backend APIs, OpenSearch, Redis, Celery, and AI integration.</p>
+      </div>
+
+      <div class="content">
+
+        <!-- SECTION 41 -->
+        <section class="sec" id="sec-41">
+          <h3><span class="idx">41</span> Database Architecture (PostgreSQL) <a href="#sec-41" class="anchor-btn"
+              onclick="copyAnchor('#sec-41', event)" title="Copy link">#</a></h3>
+          <div class="code-block">
+            Core Database Entities:
+            - users, roles
+            - student_profiles, college_profiles, college_admins, departments
+            - mentor_profiles, professional_profiles
+            - company_profiles, company_types, company_industries
+            - projects, project_members, project_roles, project_tasks, project_issues, project_discussions,
+            project_documents, project_releases, project_activity
+            - contributions, commits, pull_requests, reviews
+            - skills, user_skills, project_skills
+            - achievements, badges, certificates
+            - events, event_participants
+            - mentorship_sessions, mentor_relationships
+            - leaderboards, shortlists, contact_requests, notifications, audit_logs
+          </div>
+        </section>
+
+        <!-- SECTION 42 -->
+        <section class="sec" id="sec-42">
+          <h3><span class="idx">42</span> Company Types Schema <a href="#sec-42" class="anchor-btn"
+              onclick="copyAnchor('#sec-42', event)" title="Copy link">#</a></h3>
+          <p>Company profile schema includes <code>company_type</code> (<code>IT</code>, <code>NON_IT</code>),
+            <code>industry</code>, <code>company_size</code>, <code>location</code>, <code>website</code>,
+            <code>description</code>, <code>skills_needed</code>, and <code>projects</code>.</p>
+        </section>
+
+        <!-- SECTION 43 -->
+        <section class="sec" id="sec-43">
+          <h3><span class="idx">43</span> Role-Based Access Control (RBAC) <a href="#sec-43" class="anchor-btn"
+              onclick="copyAnchor('#sec-43', event)" title="Copy link">#</a></h3>
+          <p>Strict RBAC for Student, College Admin, Mentor, IT Company, and Non-IT Company. Users only access endpoints
+            and data authorized for their role.</p>
+        </section>
+
+        <!-- SECTION 44 -->
+        <section class="sec" id="sec-44">
+          <h3><span class="idx">44</span> Dashboard UI Differentiation <a href="#sec-44" class="anchor-btn"
+              onclick="copyAnchor('#sec-44', event)" title="Copy link">#</a></h3>
+          <p>IT Dashboard highlights technical talent, software projects, AI/ML, Cloud, DevOps, and code contributions.
+            Non-IT Dashboard highlights business talent, industry projects, data analytics, finance, marketing, and
+            operations.</p>
+        </section>
+
+        <!-- SECTION 45 -->
+        <section class="sec" id="sec-45">
+          <h3><span class="idx">45</span> Recommended Technology Stack <a href="#sec-45" class="anchor-btn"
+              onclick="copyAnchor('#sec-45', event)" title="Copy link">#</a></h3>
+          <div class="role-grid">
+            <div class="role-card">
+              <h4>Frontend</h4>
+              <ul>
+                <li>Next.js 14+ (TypeScript)</li>
+                <li>Tailwind CSS</li>
+                <li>shadcn/ui &amp; Lucide React</li>
+                <li>TanStack Query &amp; Zustand</li>
+                <li>React Hook Form &amp; Zod</li>
+              </ul>
+            </div>
+
+            <div class="role-card">
+              <h4>Backend</h4>
+              <ul>
+                <li>Python 3.11+</li>
+                <li>FastAPI Framework</li>
+                <li>Pydantic Validation</li>
+                <li>SQLAlchemy ORM</li>
+                <li>Alembic Migrations</li>
+              </ul>
+            </div>
+
+            <div class="role-card">
+              <h4>Database &amp; Search</h4>
+              <ul>
+                <li>PostgreSQL (Primary DB)</li>
+                <li>OpenSearch (Talent Search)</li>
+                <li>pgvector (Vector Embeddings)</li>
+                <li>Redis (Cache &amp; Queues)</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 46 -->
+        <section class="sec" id="sec-46">
+          <h3><span class="idx">46</span> OpenSearch Integration <a href="#sec-46" class="anchor-btn"
+              onclick="copyAnchor('#sec-46', event)" title="Copy link">#</a></h3>
+          <p>OpenSearch indexes for Technical Profiles, Projects, Skills, Technologies, Contributions, and Mentors to
+            provide instant multi-faceted search query execution.</p>
+        </section>
+
+        <!-- SECTION 47 -->
+        <section class="sec" id="sec-47">
+          <h3><span class="idx">47</span> Redis &amp; Celery Stack <a href="#sec-47" class="anchor-btn"
+              onclick="copyAnchor('#sec-47', event)" title="Copy link">#</a></h3>
+          <p>Redis for caching and rate-limiting. Celery workers for background tasks: GitHub synchronization,
+            contribution processing, leaderboard calculation, search indexing, AI profile generation, and certificate
+            rendering.</p>
+        </section>
+
+        <!-- SECTION 48 -->
+        <section class="sec" id="sec-48">
+          <h3><span class="idx">48</span> GitHub Sync Data Pipeline <a href="#sec-48" class="anchor-btn"
+              onclick="copyAnchor('#sec-48', event)" title="Copy link">#</a></h3>
+          <div class="flowline"
+            style="background:var(--bg-subtle); padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+            GitHub Webhook / API → Celery Background Worker → Contribution Engine → PostgreSQL → OpenSearch Index →
+            Super Profile Update
+          </div>
+        </section>
+
+        <!-- SECTION 49 -->
+        <section class="sec" id="sec-49">
+          <h3><span class="idx">49</span> AI / ML Stack &amp; Vector Search <a href="#sec-49" class="anchor-btn"
+              onclick="copyAnchor('#sec-49', event)" title="Copy link">#</a></h3>
+          <p>OpenAI API for LLM features and OpenAI Embeddings with <code>pgvector</code> in PostgreSQL for vector
+            search matching across profiles, projects, mentors, and company requirements.</p>
+        </section>
+
+        <!-- SECTION 50 -->
+        <section class="sec" id="sec-50">
+          <h3><span class="idx">50</span> Storage &amp; WebSockets <a href="#sec-50" class="anchor-btn"
+              onclick="copyAnchor('#sec-50', event)" title="Copy link">#</a></h3>
+          <p>Supabase Storage / S3 for profile images, project documents, and certificates. FastAPI WebSockets for
+            real-time notifications, project activities, and contact request updates.</p>
+        </section>
+
+        <!-- SECTION 51 -->
+        <section class="sec" id="sec-51">
+          <h3><span class="idx">51</span> Authentication &amp; Security <a href="#sec-51" class="anchor-btn"
+              onclick="copyAnchor('#sec-51', event)" title="Copy link">#</a></h3>
+          <p>Email/Password, Google OAuth, GitHub OAuth, JWT access/refresh tokens, input sanitization, rate limiting,
+            CORS controls, and comprehensive audit logs.</p>
+        </section>
+
+        <!-- SECTION 52 -->
+        <section class="sec" id="sec-52">
+          <h3><span class="idx">52</span> Intelligent Recommendation Engine <a href="#sec-52" class="anchor-btn"
+              onclick="copyAnchor('#sec-52', event)" title="Copy link">#</a></h3>
+          <p>Algorithms for Student → Project matching, Student → Mentor matching, IT Company → Talent matching, and
+            Non-IT Company → Talent matching based on skills, domain, industry, and project experience.</p>
+        </section>
+
+        <!-- SECTION 53 -->
+        <section class="sec" id="sec-53">
+          <h3><span class="idx">53</span> AI Features Architecture &amp; Rules <a href="#sec-53" class="anchor-btn"
+              onclick="copyAnchor('#sec-53', event)" title="Copy link">#</a></h3>
+          <p>AI features include AI Project Matching, Talent Discovery, Skill Analysis, Profile Summaries, Project
+            Assistant, and Industry Matching. <strong>CRITICAL RULE:</strong> AI must NEVER invent projects, skills,
+            contributions, experience, certificates, employment history, or GitHub activity.</p>
+        </section>
+
+        <!-- SECTION 54 -->
+        <section class="sec" id="sec-54">
+          <h3><span class="idx">54</span> Performance Optimization <a href="#sec-54" class="anchor-btn"
+              onclick="copyAnchor('#sec-54', event)" title="Copy link">#</a></h3>
+          <p>Database indexing, pagination, lazy loading, Redis caching, search indexing, and background task execution
+            ensure fast response times.</p>
+        </section>
+
+      </div>
+
+      <!-- PART VII: EXECUTION & VERIFICATION -->
+      <div class="doc-header" id="part-7-anchor">
+        <span class="doc-kicker">Part VII</span>
+        <h2>Phased Execution, Instructions &amp; Verification</h2>
+        <p>Implementation phases, AI coding agent workflow, and final product checklist.</p>
+      </div>
+
+      <div class="content">
+
+        <!-- SECTION 55 -->
+        <section class="sec" id="sec-55">
+          <h3><span class="idx">55</span> Phase-by-Phase Development Order <a href="#sec-55" class="anchor-btn"
+              onclick="copyAnchor('#sec-55', event)" title="Copy link">#</a></h3>
+          <div class="stepper">
+            <div class="step">
+              <div class="node">1</div>
+              <div class="label">PHASE 1 — Foundation (Auth, Roles, Database, RBAC, Profiles)</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">2</div>
+              <div class="label">PHASE 2 — Project Ecosystem (Creation, Discovery, Joining, Tasks, Issues, Releases)
+              </div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">3</div>
+              <div class="label">PHASE 3 — Contribution Engine (Commits, PRs, Reviews, Skills, Reputation)</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">4</div>
+              <div class="label">PHASE 4 — College (Verification, Departments, Projects, Events, Analytics)</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">5</div>
+              <div class="label">PHASE 5 — Mentor (Discovery, Mentorship, Sessions, Mock Interviews)</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">6</div>
+              <div class="label">PHASE 6 — IT Company (Technical Talent &amp; Project Discovery, Shortlists, Contact)
+              </div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">7</div>
+              <div class="label">PHASE 7 — Non-IT Company (Industry Discovery, Business Talent, Shortlists, Contact)
+              </div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">8</div>
+              <div class="label">PHASE 8 — Recognition (Leaderboards, Badges, Certificates, Rewards)</div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+              <div class="node">9</div>
+              <div class="label">PHASE 9 — AI Features (Matching, Skill Analysis, Summaries, Assistant)</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 56 -->
+        <section class="sec" id="sec-56">
+          <h3><span class="idx">56</span> AI Coding Agent Implementation Instructions <a href="#sec-56"
+              class="anchor-btn" onclick="copyAnchor('#sec-56', event)" title="Copy link">#</a></h3>
+          <p>Follow these exact implementation steps:</p>
+          <ol>
+            <li>Inspect existing repository (Frontend, Backend, DB, Auth, APIs, dependencies). Do not break working
+              features.</li>
+            <li>Create implementation plan.</li>
+            <li>Design/update database schema.</li>
+            <li>Implement authentication and RBAC.</li>
+            <li>Implement project ecosystem.</li>
+            <li>Implement contribution tracking.</li>
+            <li>Implement Super Profiles.</li>
+            <li>Implement College portal.</li>
+            <li>Implement Mentor portal.</li>
+            <li>Implement IT Company portal.</li>
+            <li>Implement Non-IT Company portal.</li>
+            <li>Implement recognition engine.</li>
+            <li>Implement AI features after core platform works.</li>
+            <li>Test all workflows.</li>
+            <li>Perform security and performance review.</li>
+          </ol>
+        </section>
+
+        <!-- SECTION 57 -->
+        <section class="sec" id="sec-57">
+          <h3><span class="idx">57</span> Final Product Test &amp; Verification Checklist <a href="#sec-57"
+              class="anchor-btn" onclick="copyAnchor('#sec-57', event)" title="Copy link">#</a></h3>
+          <p>Before completion, verify the following checklist:</p>
+
+          <div class="role-grid">
+            <div class="role-card" style="border-color:var(--green-border);">
+              <h4>Mandatory Rule Verification</h4>
+              <ul>
+                <li>✓ No Faculty role</li>
+                <li>✓ No Innovation &amp; Incubation</li>
+                <li>✓ No Job Portal, Job Posting, or Job Application</li>
+                <li>✓ Student role exists</li>
+                <li>✓ College Admin role exists</li>
+                <li>✓ Mentor / Professional role exists</li>
+                <li>✓ IT Company role exists</li>
+                <li>✓ Non-IT Company role exists</li>
+              </ul>
+            </div>
+
+            <div class="role-card" style="border-color:var(--green-border);">
+              <h4>Ecosystem Flow Verification</h4>
+              <ul>
+                <li>✓ Anyone can create appropriate projects</li>
+                <li>✓ Projects support real collaboration</li>
+                <li>✓ Contributions are tracked</li>
+                <li>✓ Skills are evidence-based</li>
+                <li>✓ Super Profile shows actual work</li>
+                <li>✓ IT companies can discover technical talent</li>
+                <li>✓ Non-IT companies can discover industry talent</li>
+                <li>✓ Companies discover contributors via projects</li>
+                <li>✓ Companies can shortlist and contact directly</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 58 -->
+        <section class="sec" id="sec-58">
+          <h3><span class="idx">58</span> Summary of Core PoOS Philosophy <a href="#sec-58" class="anchor-btn"
+              onclick="copyAnchor('#sec-58', event)" title="Copy link">#</a></h3>
+          <div class="code-block" style="text-align:center; font-size:15.5px; line-height:2.2;">
+            CREATE → BUILD → CONTRIBUTE → LEARN → DEMONSTRATE → REPUTATION → DISCOVERY → OPPORTUNITY
+            <br><br>
+            REAL WORK → REAL CONTRIBUTION → REAL EVIDENCE → REAL SKILLS → REAL TALENT DISCOVERY
+          </div>
+          <p style="margin-top:20px; text-align:center; font-weight:600; color:var(--green-light);">
+            Build PoOS as a contribution-driven talent ecosystem where opportunity is created by demonstrated work.
+          </p>
+        </section>
+
+      </div>
+
+      <footer class="doc-footer">
+        <div class="fmark">PoOS · Combined Master Product Requirements Document · Final Approved Version</div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Back to top button -->
+  <button id="back-to-top" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Back to top">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+    </svg>
+  </button>
+
+  <script>
+    // Theme Toggle Engine
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('poos_prd_theme', newTheme);
+      updateThemeUI(newTheme);
+    }
+
+    function updateThemeUI(theme) {
+      const sunIcon = document.getElementById('theme-icon-sun');
+      const moonIcon = document.getElementById('theme-icon-moon');
+      const label = document.getElementById('theme-label');
+      if (theme === 'dark') {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+        label.textContent = 'Dark';
+      } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+        label.textContent = 'Light';
+      }
+    }
+
+    // Initial Theme Setup
+    const savedTheme = localStorage.getItem('poos_prd_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeUI(savedTheme);
+
+    // Reading Progress Bar & Back-to-Top Button
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('progress-bar').style.width = scrolled + '%';
+
+      const btt = document.getElementById('back-to-top');
+      if (winScroll > 400) {
+        btt.classList.add('visible');
+      } else {
+        btt.classList.remove('visible');
+      }
+    });
+
+    // Filter TOC Links Live
+    function filterToc() {
+      const query = document.getElementById('toc-search').value.toLowerCase();
+      const links = document.querySelectorAll('.toc-link');
+      links.forEach(link => {
+        const text = link.textContent.toLowerCase();
+        if (text.includes(query)) {
+          link.parentElement.style.display = 'block';
+        } else {
+          link.parentElement.style.display = 'none';
+        }
+      });
+    }
+
+    // Active Section Observer
+    const sections = document.querySelectorAll('section.sec');
+    const navLinks = document.querySelectorAll('.toc-link');
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-10% 0px -70% 0px',
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          navLinks.forEach(link => {
+            if (link.getAttribute('href') === '#' + id) {
+              link.classList.add('active');
+              link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+    }, observerOptions);
+
+    sections.forEach(section => observer.observe(section));
+
+    // Copy Anchor Link Function
+    function copyAnchor(hash, e) {
+      e.preventDefault();
+      const url = window.location.origin + window.location.pathname + hash;
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = e.target;
+        const origText = btn.textContent;
+        btn.textContent = '✓';
+        setTimeout(() => { btn.textContent = origText; }, 1500);
+      });
+    }
+  </script>
+</body>
+
+</html>
