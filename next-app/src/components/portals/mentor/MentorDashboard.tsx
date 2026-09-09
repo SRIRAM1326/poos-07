@@ -15,6 +15,7 @@ import {
   MentorAnalytics, MentorSettings, MentorSuperProfile 
 } from './components/MentorPlaceholders';
 import { useLiveNotifications } from '@/hooks/useLiveNotifications';
+import { getCurrentUserId } from '@/services/api';
 import { LiveToast } from '@/components/ui/LiveToast';
 
 interface MentorDashboardProps {
@@ -40,7 +41,7 @@ const SIDEBAR_ITEMS = [
 
 export const MentorDashboard: React.FC<MentorDashboardProps> = ({ activeTab = 'overview', currentUser }) => {
   const [currentView, setCurrentView] = useState(activeTab);
-  const { latestNotification } = useLiveNotifications(currentUser?.id || 1);
+  const { latestNotification } = useLiveNotifications(currentUser?.id || getCurrentUserId());
 
   const renderContent = () => {
     switch (currentView) {

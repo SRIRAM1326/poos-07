@@ -1,8 +1,34 @@
-import React from 'react';
-import { mentorMockData } from '../data/mentorMockData';
+import React, { useEffect, useState } from 'react';
+import { api } from '@/services/api';
+
+interface SessionItem {
+  id: number;
+  student_name?: string;
+  topic?: string;
+  scheduled_for?: string;
+  status?: string;
+}
 
 export const MentorStudents: React.FC = () => {
-  const { students } = mentorMockData;
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadData() {
+      try {
+        const data = await api.getMentorSessions('STUDENT');
+        if (!cancelled) setSessions(data || []);
+      } catch (err: any) {
+        if (!cancelled) setError(err?.message || 'Failed to load mentees.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    loadData();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.3s ease' }}>
@@ -15,38 +41,36 @@ export const MentorStudents: React.FC = () => {
 
       <div className="gold-card">
         <div className="gold-card-body" style={{ padding: 0 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'var(--bg-subtle)', textAlign: 'left', fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                <th style={{ padding: '16px' }}>Student</th>
-                <th style={{ padding: '16px' }}>Focus Area</th>
-                <th style={{ padding: '16px' }}>Progress</th>
-                <th style={{ padding: '16px' }}>Next Session</th>
-                <th style={{ padding: '16px' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map(student => (
-                <tr key={student.id} style={{ borderTop: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ fontWeight: 600 }}>{student.name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{student.college}</div>
-                  </td>
-                  <td style={{ padding: '16px', fontSize: '14px' }}>{student.focus}</td>
-                  <td style={{ padding: '16px' }}>
-                    <div style={{ width: '100px', height: '6px', background: 'var(--bg-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ width: `${student.progress}%`, height: '100%', background: 'var(--purple-primary)' }} />
-                    </div>
-                    <div style={{ fontSize: '11px', marginTop: '4px' }}>{student.progress}% Completed</div>
-                  </td>
-                  <td style={{ padding: '16px', fontSize: '14px', color: 'var(--purple-primary)', fontWeight: 500 }}>{student.nextSession}</td>
-                  <td style={{ padding: '16px' }}>
-                    <button style={{ padding: '6px 12px', background: 'transparent', color: 'var(--purple-primary)', border: '1px solid var(--purple-primary)', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}>View Profile</button>
-                  </td>
+          {loading ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading sessions...</div>
+          ) : error ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Failed to load sessions: {error}</div>
+          ) : sessions.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No mentee sessions yet.</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--bg-subtle)', textAlign: 'left', fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '16px' }}>Student</th>
+                  <th style={{ padding: '16px' }}>Topic</th>
+                  <th style={{ padding: '16px' }}>Scheduled</th>
+                  <th style={{ padding: '16px' }}>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sessions.map(session => (
+                  <tr key={session.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ fontWeight: 600 }}>{session.student_name || 'Student'}</div>
+                    </td>
+                    <td style={{ padding: '16px', fontSize: '14px' }}>{session.topic || '—'}</td>
+                    <td style={{ padding: '16px', fontSize: '14px', color: 'var(--purple-primary)', fontWeight: 500 }}>{session.scheduled_for || '—'}</td>
+                    <td style={{ padding: '16px', fontSize: '14px' }}>{session.status || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

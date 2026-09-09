@@ -128,7 +128,7 @@ export const NonITCompanyDashboard: React.FC<NonITCompanyDashboardProps> = ({ ac
               </span>
             </div>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--gold-dark)', marginTop: '4px' }}>
-              {companyProfile?.industry || 'Industry'} · {companyProfile?.location || 'Bengaluru / Hybrid'}
+              {companyProfile?.industry || '—'} · {companyProfile?.location || '—'}
             </p>
           </div>
         </div>

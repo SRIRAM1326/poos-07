@@ -147,7 +147,7 @@ export interface CollegeProjectItem {
   tagline: string;
   description?: string;
   project_type: string;
-  participation_scope: 'ALL_COLLEGES_OPEN' | 'SAME_COLLEGE' | 'PUBLIC_OPEN' | 'INVITE_ONLY';
+  scope: string;
   status: string;
   stars_count: number;
   contributors_count: number;
@@ -335,4 +335,86 @@ export interface EventItem {
   location: string;
   event_date: string;
   participant_count: number;
+}
+
+// ----------------------------- GitHub Integration -----------------------------
+
+export interface GitHubProfile {
+  id: number;
+  github_id: number;
+  login: string;
+  name?: string;
+  avatar_url?: string;
+  bio?: string;
+  email?: string;
+  html_url?: string;
+  company?: string;
+  location?: string;
+  blog?: string;
+  followers: number;
+  following: number;
+  public_repos: number;
+  account_created_at?: string;
+  last_sync_at?: string;
+  last_sync_error?: string;
+}
+
+export interface GitHubLanguageStat {
+  name: string;
+  bytes: number;
+  percentage: number;
+}
+
+export interface GitHubRepositoryItem {
+  github_repo_id: number;
+  name: string;
+  full_name: string;
+  description?: string;
+  html_url?: string;
+  default_branch?: string;
+  visibility?: string;
+  owner_login?: string;
+  primary_language?: string;
+  size: number;
+  open_issues_count: number;
+  license_name?: string;
+  archived: boolean;
+  languages: Record<string, number>;
+  topics: string[];
+  stargazers_count: number;
+  forks_count: number;
+  is_fork: boolean;
+  created_at?: string;
+  updated_at?: string;
+  pushed_at?: string;
+  statistics: Record<string, any>;
+}
+
+export interface GitHubContributionsSummary {
+  contribution_score: number;
+  score_weights: Record<string, number>;
+  active_projects: number;
+  total_commits: number;
+  total_prs: number;
+  merged_prs: number;
+  open_prs: number;
+  closed_prs: number;
+  issues_solved: number;
+  open_issues: number;
+  code_reviews: number;
+  reviews_approved: number;
+  reviews_changes_requested: number;
+  additions: number;
+  deletions: number;
+  total_repos: number;
+  last_sync_at?: string;
+}
+
+export interface GitHubActivityItem {
+  id: string;
+  type: string;
+  repo_name?: string;
+  repo_url?: string;
+  action?: string;
+  created_at?: string;
 }

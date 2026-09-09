@@ -23,9 +23,9 @@ export function ProfileSetupModal({ currentUser, onClose, onSuccess }: ProfileSe
   const [skillsText, setSkillsText] = useState('');
   const [projectsText, setProjectsText] = useState('');
   const [bio, setBio] = useState('');
-  const [collegeName, setCollegeName] = useState('Indian Institute of Technology, Madras');
+  const [collegeName, setCollegeName] = useState(currentUser?.college_name || '');
   const [companyName, setCompanyName] = useState('');
-  const [industry, setIndustry] = useState('Enterprise Software & AI');
+  const [industry, setIndustry] = useState('');
   const [description, setDescription] = useState('');
 
   const [loading, setLoading] = useState(false);

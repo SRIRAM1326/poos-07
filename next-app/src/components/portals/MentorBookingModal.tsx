@@ -12,10 +12,10 @@ interface MentorBookingModalProps {
 }
 
 export function MentorBookingModal({ mentorName, mentorId, onClose, onSuccess }: MentorBookingModalProps) {
-  const [topic, setTopic] = useState('System Architecture & Open Source Code Review');
+  const [topic, setTopic] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('2026-09-05');
-  const [time, setTime] = useState('15:00');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [duration, setDuration] = useState(45);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);

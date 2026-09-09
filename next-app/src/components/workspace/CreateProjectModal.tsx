@@ -14,9 +14,9 @@ export function CreateProjectModal({ onClose, onSuccess }: CreateProjectModalPro
   const [tagline, setTagline] = useState('');
   const [description, setDescription] = useState('');
   const [projectType, setProjectType] = useState('OPEN_SOURCE');
-  const [repoUrl, setRepoUrl] = useState('https://github.com/poos-ecosystem/my-new-project');
-  const [rightsTag, setRightsTag] = useState('MIT Open Source');
-  const [techStack, setTechStack] = useState('FastAPI, Next.js, PostgreSQL, TypeScript');
+  const [repoUrl, setRepoUrl] = useState('');
+  const [rightsTag, setRightsTag] = useState('');
+  const [techStack, setTechStack] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

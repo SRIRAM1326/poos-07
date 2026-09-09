@@ -111,6 +111,10 @@ export const api = {
     return safeFetch<any[]>(`${API_BASE_URL}/profiles/college/pending-students`);
   },
 
+  getStudents: async () => {
+    return safeFetch<any[]>(`${API_BASE_URL}/profiles/students`);
+  },
+
   verifyStudent: async (studentId: number) => {
     return safeFetch(`${API_BASE_URL}/profiles/college/verify-student/${studentId}`, {
       method: 'POST'
@@ -281,6 +285,14 @@ getCollegeProfile: async (userId: number) => {
     return safeFetch<any>(`${API_BASE_URL}/github/repositories`);
   },
 
+  getGitHubLanguages: async () => {
+    return safeFetch<any>(`${API_BASE_URL}/github/languages`);
+  },
+
+  getGitHubContributions: async () => {
+    return safeFetch<any>(`${API_BASE_URL}/github/contributions`);
+  },
+
   getGitHubStatistics: async () => {
     return safeFetch<any>(`${API_BASE_URL}/github/statistics`);
   },
@@ -295,6 +307,10 @@ getCollegeProfile: async (userId: number) => {
 
   deleteGitHubConnection: async () => {
     return safeFetch<any>(`${API_BASE_URL}/github/connection`, { method: 'DELETE' });
+  },
+
+  deleteGitHubDisconnect: async () => {
+    return safeFetch<any>(`${API_BASE_URL}/github/disconnect`, { method: 'DELETE' });
   },
 
   getGoogleAuthUrl: async (role?: string) => {

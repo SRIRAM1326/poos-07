@@ -1,35 +1,67 @@
-import React from 'react';
-import { collegeMockData } from '@/data/collegeMockData';
-import { Users, ShieldCheck, Activity, FolderGit2, Trophy, BarChart3, TrendingUp } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { api, getCurrentUserId } from '@/services/api';
+import { Users, ShieldCheck, Activity, FolderGit2, BarChart3, TrendingUp } from 'lucide-react';
 import { EcosystemLeaderboard } from '@/components/ui/EcosystemLeaderboard';
 
+interface CollegeProfileData {
+  student_count?: number | null;
+  active_projects_count?: number | null;
+  verified_students_count?: number | null;
+  college_name?: string | null;
+  total_contributions?: { commits?: number; prs?: number } | null;
+}
+
 export const CollegeOverview: React.FC = () => {
-  const { overview } = collegeMockData;
+  const [profile, setProfile] = useState<CollegeProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadData() {
+      const userId = getCurrentUserId();
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const data = await api.getCollegeProfile(userId);
+        if (!cancelled) setProfile(data);
+      } catch (err) {
+        if (!cancelled) setProfile(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    loadData();
+    return () => { cancelled = true; };
+  }, []);
+
+  const totalContributions = profile?.total_contributions;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.3s ease' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
         <div className="stat-box" style={{ borderLeftColor: 'var(--purple-primary)' }}>
           <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Users size={20} color="var(--purple-primary)" /> {overview.totalStudents}
+            <Users size={20} color="var(--purple-primary)" /> {loading ? '—' : (profile?.student_count ?? '—')}
           </div>
           <div className="lbl">Total Students</div>
         </div>
         <div className="stat-box" style={{ borderLeftColor: 'var(--green-primary)' }}>
           <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck size={20} color="var(--green-primary)" /> {overview.activeStudents}
+            <ShieldCheck size={20} color="var(--green-primary)" /> {loading ? '—' : (profile?.verified_students_count ?? '—')}
           </div>
           <div className="lbl">Verified & Active</div>
         </div>
         <div className="stat-box" style={{ borderLeftColor: 'var(--blue-primary)' }}>
           <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Activity size={20} color="var(--blue-primary)" /> {overview.studentContributions}
+            <Activity size={20} color="var(--blue-primary)" /> {loading ? '—' : (totalContributions?.commits ?? 0)}
           </div>
-          <div className="lbl">Student Contributions</div>
+          <div className="lbl">Contributions</div>
         </div>
         <div className="stat-box" style={{ borderLeftColor: 'var(--orange-primary)' }}>
           <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FolderGit2 size={20} color="var(--orange-primary)" /> {overview.activeProjects}
+            <FolderGit2 size={20} color="var(--orange-primary)" /> {loading ? '—' : (profile?.active_projects_count ?? '—')}
           </div>
           <div className="lbl">Active Projects</div>
         </div>
@@ -45,7 +77,7 @@ export const CollegeOverview: React.FC = () => {
           <div className="gold-card-body" style={{ minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-subtle)' }}>
             <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
               <TrendingUp size={48} style={{ margin: '0 auto 12px', opacity: 0.2 }} />
-              <p>Activity Chart Visualization (Mock)</p>
+              <p>No activity data available yet.</p>
             </div>
           </div>
         </div>
@@ -57,13 +89,8 @@ export const CollegeOverview: React.FC = () => {
             </h3>
           </div>
           <div className="gold-card-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--purple-primary)', marginTop: '6px' }} />
-              <div><div style={{ fontWeight: 600, fontSize: '14px' }}>Project Published</div><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>AI Trading Dashboard is now open</div></div>
-            </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--green-primary)', marginTop: '6px' }} />
-              <div><div style={{ fontWeight: 600, fontSize: '14px' }}>Event Created</div><div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Web3 Builder Meetup</div></div>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0' }}>
+              <p>No recent activity to show.</p>
             </div>
           </div>
         </div>

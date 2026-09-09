@@ -3,19 +3,19 @@
 import React, { useEffect, useState } from 'react';
 import { api, getCurrentUserId } from '@/services/api';
 import { StudentProfile, Project } from '@/types';
-import { 
-  CheckCircle, 
-  Code, 
-  Zap, 
-  PlusCircle, 
-  Compass, 
-  UserCheck, 
-  Bot, 
-  Users, 
-  Bell, 
-  Sparkles, 
-  Flame, 
-  GitCommit, 
+import {
+  CheckCircle,
+  Code,
+  Zap,
+  PlusCircle,
+  Compass,
+  UserCheck,
+  Bot,
+  Users,
+  Bell,
+  Sparkles,
+  Flame,
+  GitCommit,
 } from 'lucide-react';
 
 import { MentorBookingModal } from './MentorBookingModal';
@@ -30,8 +30,8 @@ interface StudentDashboardProps {
   currentUser?: any;
 }
 
-export const StudentDashboard: React.FC<StudentDashboardProps> = ({ 
-  onSelectProject, 
+export const StudentDashboard: React.FC<StudentDashboardProps> = ({
+  onSelectProject,
   activeTab = 'dashboard',
   onOpenCertificates,
   currentUser
@@ -134,26 +134,41 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      
+
       {/* ------------------------------------------------------------- */}
       {/* 1. Dashboard Overview / Welcome & Quick Actions */}
       {/* ------------------------------------------------------------- */}
       <div className="gold-card" style={{ padding: '32px', background: 'linear-gradient(135deg, #ffffff 0%, #fffbe6 60%, #ecfdf5 100%)' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px' }}>
-          
+
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flex: 1, minWidth: '280px' }}>
-            <img
-              src={profile.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
-              alt="Student Avatar"
-              style={{
-                width: '92px',
-                height: '92px',
-                borderRadius: '50%',
-                border: '3px solid var(--gold-primary)',
-                objectFit: 'cover',
-                boxShadow: 'var(--shadow-gold)'
-              }}
-            />
+            <div style={{
+              width: '92px',
+              height: '92px',
+              borderRadius: '50%',
+              border: '3px solid var(--gold-primary)',
+              objectFit: 'cover',
+              boxShadow: 'var(--shadow-gold)',
+              background: 'var(--bg-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '32px',
+              fontWeight: 800,
+              color: 'var(--gold-dark)',
+              fontFamily: 'var(--font-heading)',
+              overflow: 'hidden'
+            }}>
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt="Student Avatar"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                (profile.full_name || 'S').charAt(0).toUpperCase()
+              )}
+            </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '26px', fontWeight: 800, color: 'var(--text-main)' }}>
@@ -216,7 +231,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             <PlusCircle size={15} /> Create Project
           </button>
 
-          <button onClick={() => onSelectProject(1)} className="gold-btn-outline" style={{ fontSize: '13px', padding: '8px 16px' }}>
+          <button onClick={() => document.getElementById('projects-section')?.scrollIntoView({ behavior: 'smooth' })} className="gold-btn-outline" style={{ fontSize: '13px', padding: '8px 16px' }}>
             <Compass size={15} /> Discover Projects
           </button>
 
@@ -364,14 +379,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             >
               <div style={{ flex: 1, minWidth: '280px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <h4 
+                  <h4
                     onClick={() => onSelectProject(proj.id)}
                     style={{ fontFamily: 'var(--font-heading)', fontSize: '17px', fontWeight: 700, color: 'var(--text-main)', cursor: 'pointer' }}
                   >
                     {proj.title}
                   </h4>
                   <span className="gold-badge blue">{proj.project_type}</span>
-                  <span className="gold-badge green">Role: Lead Maintainer</span>
                 </div>
                 <p style={{ fontSize: '13px', color: 'var(--text-soft)', marginTop: '4px' }}>
                   {proj.tagline || proj.description}
@@ -379,7 +393,6 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                 {/* Team & Progress */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                  <span>Team: 3 Members</span>
                   <span>• Rights: {proj.rights_tag}</span>
                   <span>• Stars: ⭐ {proj.stars_count}</span>
                 </div>
@@ -505,7 +518,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       {/* 6. Achievements & 7. Rankings */}
       {/* ------------------------------------------------------------- */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
-        
+
         {/* 6. Achievements */}
         <div className="gold-card" id="achievements-section">
           <div className="gold-card-header">
@@ -520,7 +533,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </span>
             ))}
             <button onClick={onOpenCertificates} className="gold-btn-outline" style={{ fontSize: '12px', padding: '6px 12px' }}>
-              View 2 Verified Certificates ↗
+              View {profile.certificates_count ?? 0} Verified Certificate{profile.certificates_count === 1 ? '' : 's'} ↗
             </button>
           </div>
         </div>
@@ -562,6 +575,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <span className="gold-badge purple">vector search match</span>
         </div>
         <div className="gold-card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+          {!profile.recommended_projects?.length && (
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No project recommendations yet. Complete your profile to get AI-matched projects.</p>
+          )}
           {profile.recommended_projects?.map((item) => (
             <div key={item.id} style={{
               padding: '20px',
@@ -614,6 +630,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <span className="gold-badge blue">Top Industry Experts</span>
         </div>
         <div className="gold-card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+          {!profile.recommended_mentors?.length && (
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No mentor recommendations yet. Explore the mentor directory to request sessions.</p>
+          )}
           {profile.recommended_mentors?.map((mentor) => (
             <div key={mentor.id} style={{
               padding: '20px',
@@ -636,9 +655,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                  <button 
-                    onClick={() => requestMentorship({ id: mentor.id, name: mentor.name })} 
-                    className="gold-btn" 
+                  <button
+                    onClick={() => requestMentorship({ id: mentor.id, name: mentor.name })}
+                    className="gold-btn"
                     style={{ fontSize: '12px', padding: '4px 12px' }}
                   >
                     Request Mentorship ↗

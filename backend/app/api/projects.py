@@ -102,22 +102,15 @@ async def log_contribution(project_id: int, contrib_in: schemas.ContributionCrea
         lines_deleted=contrib_in.lines_deleted
     )
     db.add(contrib)
-
-    # Automatically increment student reputation score
-    student_profile = db.query(models.StudentProfile).filter(models.StudentProfile.user_id == user.id).first()
-    if student_profile:
-        student_profile.reputation_score += 35
-
     db.commit()
     db.refresh(contrib)
 
-    # Broadcast Gamification WebSocket Event
+    # Broadcast Progress WebSocket Event (no fabricated reputation claim)
     await manager.send_personal_message({
-        "type": "GAMIFICATION",
+        "type": "CONTRIBUTION_LOGGED",
         "payload": {
-            "title": "PR Merged!",
-            "message": f"Your contribution to PR #{contrib.pr_number} earned you +35 Reputation Points! 🏆",
-            "score_update": 35
+            "title": "Contribution Logged",
+            "message": f"Contribution to {contrib.project_id} recorded."
         }
     }, user.id)
 

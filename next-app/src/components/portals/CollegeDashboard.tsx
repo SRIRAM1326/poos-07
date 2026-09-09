@@ -10,6 +10,7 @@ import { CollegeOverview } from './college/CollegeOverview';
 import { CollegeStudents } from './college/CollegeStudents';
 import { CollegeProjects } from './college/CollegeProjects';
 import { useLiveNotifications } from '@/hooks/useLiveNotifications';
+import { getCurrentUserId } from '@/services/api';
 import { LiveToast } from '@/components/ui/LiveToast';
 import { CollegeEvents } from './college/CollegeEvents';
 import { 
@@ -44,7 +45,7 @@ const SIDEBAR_ITEMS = [
 
 export const CollegeDashboard: React.FC<CollegeDashboardProps> = ({ activeTab = 'overview', currentUser }) => {
   const [currentView, setCurrentView] = useState(activeTab);
-  const { latestNotification } = useLiveNotifications(currentUser?.id || 1);
+  const { latestNotification } = useLiveNotifications(currentUser?.id || getCurrentUserId());
 
   const renderContent = () => {
     switch (currentView) {
@@ -60,9 +61,9 @@ export const CollegeDashboard: React.FC<CollegeDashboardProps> = ({ activeTab = 
       case 'certificates': return <CollegeCertificates />;
       case 'placement': return <CollegePlacements />;
       case 'analytics': return <CollegeAnalytics />;
-      case 'leaderboard': return <div style={{ padding: '40px', textAlign: 'center' }}>Leaderboard Mock</div>;
-      case 'profile': return <div style={{ padding: '40px', textAlign: 'center' }}>Profile Mock</div>;
-      case 'settings': return <div style={{ padding: '40px', textAlign: 'center' }}>Settings Mock</div>;
+      case 'leaderboard': return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No leaderboard data to display.</div>;
+      case 'profile': return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No college profile data to display.</div>;
+      case 'settings': return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>No settings data to display.</div>;
       default: return <CollegeOverview />;
     }
   };

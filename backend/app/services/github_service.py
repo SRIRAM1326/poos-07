@@ -10,7 +10,7 @@ from cryptography.fernet import Fernet
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models.models import GitHubAccount, GitHubRepository, OAuthState, User
+from app.models.models import GitHubAccount, GitHubRepository, GitHubSyncLog, OAuthState, User
 
 GITHUB_API = "https://api.github.com"
 GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
@@ -24,6 +24,9 @@ GITHUB_STATE_TTL_MINUTES = 10
 GITHUB_ACTIVE_REPO_DAYS = 90
 OWNED_REPO_STATS_MAX = 30
 PER_REPO_SEARCH_MAX = 7
+# Language byte counts are fetched per-repo, so cap the number of repos we hit to
+# avoid exhausting the GitHub API rate limit for users with large repo counts.
+LANGUAGE_FETCH_REPO_MAX = 30
 
 SCORE_WEIGHTS = {
     "commits": 10,
@@ -83,9 +86,12 @@ def _totals(access_token: str, login: str) -> dict:
         "prs_total": (f"author:{login} type:pr", False),
         "prs_merged": (f"author:{login} type:pr is:merged", False),
         "prs_open": (f"author:{login} type:pr state:open", False),
+        "prs_closed": (f"author:{login} type:pr is:closed is:unmerged", False),
         "issues_closed": (f"author:{login} type:issue state:closed", False),
         "issues_open": (f"author:{login} type:issue state:open", False),
         "code_reviews": (f"reviewed-by:{login} type:pr", False),
+        "reviews_approved": (f"reviewed-by:{login} type:pr review:approved", False),
+        "reviews_changes_requested": (f"reviewed-by:{login} type:pr review:changes_requested", False),
     }
     totals = {}
     capped = False
@@ -151,6 +157,63 @@ def _parse_iso(value) -> datetime.datetime | None:
         return parsed.replace(tzinfo=None)
     except ValueError:
         return None
+
+
+def _get_rate_limit_info(response: requests.Response) -> dict:
+    """Extract rate limit headers from a GitHub API response."""
+    return {
+        "remaining": int(response.headers.get("X-RateLimit-Remaining", 0) or 0),
+        "reset_at": _parse_iso(response.headers.get("X-RateLimit-Reset")),
+    }
+
+
+def _get_repo_languages(access_token: str, owner_login: str, repo_name: str) -> dict:
+    """Fetch byte-count languages for a single repo. Returns {lang: bytes}."""
+    url = f"{GITHUB_API}/repos/{owner_login}/{repo_name}/languages"
+    try:
+        response = requests.get(url, headers=_auth_headers(access_token), timeout=15)
+        if response.status_code == 200:
+            return response.json() or {}
+    except requests.RequestException:
+        pass
+    return {}
+
+
+def _aggregate_languages(repos: list) -> dict:
+    """Aggregate language bytes across repos. Returns {lang: bytes} and total."""
+    combined: dict[str, int] = {}
+    for repo in repos:
+        lang_data = repo.languages_json or {}
+        for lang, bytes_count in lang_data.items():
+            combined[lang] = combined.get(lang, 0) + int(bytes_count or 0)
+    return combined
+
+
+def _languages_to_percentages(raw: dict) -> list:
+    """Convert raw bytes dict to sorted percentage list. Returns [{name, bytes, percentage}]."""
+    total = sum(raw.values())
+    if total == 0:
+        return []
+    items = []
+    for lang, byte_count in sorted(raw.items(), key=lambda x: x[1], reverse=True):
+        items.append({
+            "name": lang,
+            "bytes": byte_count,
+            "percentage": round(byte_count / total * 100, 1),
+        })
+    return items
+
+
+def _commit_activity(access_token: str, owner_login: str, repo_name: str) -> list:
+    """Fetch weekly commit activity for a repo. Returns list of weekly counts."""
+    url = f"{GITHUB_API}/repos/{owner_login}/{repo_name}/stats/commit_activity"
+    try:
+        response = requests.get(url, headers=_auth_headers(access_token), timeout=15)
+        if response.status_code == 200:
+            return response.json() or []
+    except requests.RequestException:
+        pass
+    return []
 
 
 def fetch_github_user(access_token: str) -> dict:
@@ -228,6 +291,13 @@ def upsert_github_account(db: Session, user_id: int, gh_user: dict, access_token
     account.bio = gh_user.get("bio")
     account.email = gh_user.get("email")
     account.html_url = gh_user.get("html_url")
+    account.company = gh_user.get("company")
+    account.location = gh_user.get("location")
+    account.blog = gh_user.get("blog")
+    account.followers = int(gh_user.get("followers", 0) or 0)
+    account.following = int(gh_user.get("following", 0) or 0)
+    account.public_repos = int(gh_user.get("public_repos", 0) or 0)
+    account.account_created_at = _parse_iso(gh_user.get("created_at"))
     account.access_token_enc = encrypt_token(access_token)
     account.scope = scopes
     account.is_connected = True
@@ -238,6 +308,11 @@ def upsert_github_account(db: Session, user_id: int, gh_user: dict, access_token
 
 
 def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
+    start_time = time.time()
+    sync_status = "success"
+    sync_error = None
+    rate_limit_info: dict = {}
+
     try:
         access_token = decrypt_token(account.access_token_enc)
         gh_user = fetch_github_user(access_token)
@@ -247,10 +322,18 @@ def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
         account.bio = gh_user.get("bio", account.bio)
         account.email = gh_user.get("email", account.email)
         account.html_url = gh_user.get("html_url", account.html_url)
+        account.company = gh_user.get("company")
+        account.location = gh_user.get("location")
+        account.blog = gh_user.get("blog")
+        account.followers = int(gh_user.get("followers", 0) or 0)
+        account.following = int(gh_user.get("following", 0) or 0)
+        account.public_repos = int(gh_user.get("public_repos", 0) or 0)
+        account.account_created_at = _parse_iso(gh_user.get("created_at"))
 
         seen_ids = set()
         owned_repos = []
         current_page = 1
+        lang_fetch_count = 0
         while True:
             response = requests.get(
                 f"{GITHUB_API}/user/repos",
@@ -266,6 +349,7 @@ def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
             )
             if response.status_code != 200:
                 response.raise_for_status()
+            rate_limit_info = _get_rate_limit_info(response)
             repos = response.json()
             if not repos:
                 break
@@ -286,6 +370,12 @@ def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
                 row.default_branch = repo.get("default_branch")
                 row.visibility = repo.get("visibility")
                 row.owner_login = owner_login
+                row.primary_language = repo.get("language")
+                row.size = int(repo.get("size", 0) or 0)
+                row.open_issues_count = int(repo.get("open_issues_count", 0) or 0)
+                lic = repo.get("license") or {}
+                row.license_name = lic.get("spdx_id") or lic.get("name")
+                row.archived = bool(repo.get("archived", False))
                 row.topics_json = repo.get("topics", []) or []
                 row.stargazers_count = int(repo.get("stargazers_count", 0) or 0)
                 row.forks_count = int(repo.get("forks_count", 0) or 0)
@@ -294,6 +384,17 @@ def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
                 row.repo_updated_at = _parse_iso(repo.get("updated_at"))
                 row.repo_pushed_at = _parse_iso(repo.get("pushed_at"))
                 row.synced_at = datetime.datetime.utcnow()
+
+                # Fetch language byte counts for a bounded number of non-fork repos
+                # (repos arrive sorted by "updated", most recent first). This keeps
+                # the per-sync API call count low while still representing the
+                # developer's dominant languages from real byte statistics.
+                if not row.is_fork and lang_fetch_count < LANGUAGE_FETCH_REPO_MAX:
+                    lang_bytes = _get_repo_languages(access_token, owner_login, row.name)
+                    if lang_bytes:
+                        row.languages_json = lang_bytes
+                        lang_fetch_count += 1
+
                 if int((repo.get("owner") or {}).get("id", 0)) == account.github_id and not row.is_fork:
                     owned_repos.append(row)
                 seen_ids.add(repo_id)
@@ -317,6 +418,12 @@ def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
         active_projects = 0
         per_repo_truncated = len(owned_repos) > PER_REPO_SEARCH_MAX
         cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=GITHUB_ACTIVE_REPO_DAYS)
+
+        # Compute per-repo stats and aggregate languages
+        all_repos_for_lang = list(db.query(GitHubRepository).filter(
+            GitHubRepository.account_id == account.id,
+        ).all())
+
         for index, repo_row in enumerate(owned_repos):
             contributions = _repo_stats(access_token, repo_row.owner_login or account.login, repo_row.name, account.github_id)
             stats = contributions.copy()
@@ -332,12 +439,17 @@ def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
                 deletions += contributions.get("deletions", 0)
         db.commit()
 
+        # Aggregate languages across all repos
+        raw_langs = _aggregate_languages(all_repos_for_lang)
+        account.languages_json = _languages_to_percentages(raw_langs)
+
         totals["active_projects"] = active_projects
         totals["additions"] = additions
         totals["deletions"] = deletions
         totals["per_repo_truncated"] = per_repo_truncated
         totals["contribution_score"] = compute_contribution_score(totals)
         totals["computed_at"] = datetime.datetime.utcnow().isoformat()
+        totals["total_repos"] = len(all_repos_for_lang)
 
         account.statistics_json = totals
         account.last_sync_at = datetime.datetime.utcnow()
@@ -349,11 +461,30 @@ def sync_github_account(db: Session, account: GitHubAccount) -> GitHubAccount:
             user.github_url = account.html_url
             db.commit()
     except Exception as exc:
+        sync_status = "failed"
+        sync_error = str(exc)[:500]
         db.rollback()
         account = db.query(GitHubAccount).filter(GitHubAccount.id == account.id).first()
         if account is not None:
-            account.last_sync_error = str(exc)[:500]
+            account.last_sync_error = sync_error
             db.commit()
+
+    # Log sync result
+    duration_ms = int((time.time() - start_time) * 1000)
+    try:
+        log_entry = GitHubSyncLog(
+            account_id=account.id,
+            status=sync_status,
+            error_message=sync_error,
+            rate_limit_remaining=rate_limit_info.get("remaining"),
+            rate_limit_reset_at=rate_limit_info.get("reset_at"),
+            duration_ms=duration_ms,
+        )
+        db.add(log_entry)
+        db.commit()
+    except Exception:
+        db.rollback()
+
     return account
 
 
@@ -383,3 +514,35 @@ def fetch_recent_activity(db: Session, account: GitHubAccount) -> dict:
             "created_at": event.get("created_at"),
         })
     return {"activity": items, "error": None}
+
+
+def fetch_language_summary(db: Session, account: GitHubAccount) -> dict:
+    """Return aggregated language data stored on the account."""
+    return {
+        "languages": account.languages_json or [],
+        "last_sync_at": account.last_sync_at.isoformat() if account.last_sync_at else None,
+    }
+
+
+def fetch_contributions_summary(db: Session, account: GitHubAccount) -> dict:
+    """Build a dashboard-ready contribution summary from stored statistics."""
+    totals = account.statistics_json or {}
+    return {
+        "contribution_score": int(totals.get("contribution_score", 0) or 0),
+        "score_weights": SCORE_WEIGHTS,
+        "active_projects": int(totals.get("active_projects", 0) or 0),
+        "total_commits": int(totals.get("commits", 0) or 0),
+        "total_prs": int(totals.get("prs_total", 0) or 0),
+        "merged_prs": int(totals.get("prs_merged", 0) or 0),
+        "open_prs": int(totals.get("prs_open", 0) or 0),
+        "closed_prs": int(totals.get("prs_closed", 0) or 0),
+        "issues_solved": int(totals.get("issues_closed", 0) or 0),
+        "open_issues": int(totals.get("issues_open", 0) or 0),
+        "code_reviews": int(totals.get("code_reviews", 0) or 0),
+        "reviews_approved": int(totals.get("reviews_approved", 0) or 0),
+        "reviews_changes_requested": int(totals.get("reviews_changes_requested", 0) or 0),
+        "additions": int(totals.get("additions", 0) or 0),
+        "deletions": int(totals.get("deletions", 0) or 0),
+        "total_repos": int(totals.get("total_repos", 0) or 0),
+        "last_sync_at": account.last_sync_at.isoformat() if account.last_sync_at else None,
+    }

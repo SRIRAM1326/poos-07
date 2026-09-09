@@ -29,7 +29,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
   // New contribution modal state
   const [showContribModal, setShowContribModal] = useState(false);
   const [commitMsg, setCommitMsg] = useState('');
-  const [commitHash, setCommitHash] = useState('b9e81a3f');
+  const [commitHash, setCommitHash] = useState('');
   const [prTitle, setPrTitle] = useState('');
   const [successToast, setSuccessToast] = useState('');
   const [errorToast, setErrorToast] = useState('');
@@ -80,18 +80,16 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
     if (!commitMsg) return;
     try {
       const contrib = await api.logContribution(projectId, {
-        commit_hash: commitHash,
+        commit_hash: commitHash || undefined,
         commit_message: commitMsg,
-        pr_number: Math.floor(Math.random() * 50) + 1,
-        pr_title: prTitle || commitMsg,
-        lines_added: 210,
-        lines_deleted: 14
+        pr_title: prTitle || commitMsg
       });
       setContributions([contrib, ...contributions]);
       setShowContribModal(false);
       setCommitMsg('');
+      setCommitHash('');
       setPrTitle('');
-      setSuccessToast('Merged PR logged directly to Supabase PostgreSQL! Student reputation score +35 pts!');
+      setSuccessToast('Merged PR logged.');
       setTimeout(() => setSuccessToast(''), 4000);
     } catch (err: any) {
       console.error('Failed logging contribution:', err);
@@ -357,6 +355,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                   value={commitMsg}
                   onChange={(e) => setCommitMsg(e.target.value)}
                   placeholder="Add lock-free batch vector inserts"
+                  style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '4px' }}>Commit Hash (optional)</label>
+                <input
+                  type="text"
+                  value={commitHash}
+                  onChange={(e) => setCommitHash(e.target.value)}
+                  placeholder="e.g. b9e81a3f7c..."
                   style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', fontSize: '13px' }}
                 />
               </div>

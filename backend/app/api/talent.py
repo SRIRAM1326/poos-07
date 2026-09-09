@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_roles
+
+COMPANY_ONLY = require_roles("IT_COMPANY", "NON_IT_COMPANY")
 from app.models import models
 from app.schemas import schemas
 from typing import List, Optional
@@ -15,7 +17,7 @@ def it_talent_search(
     department: Optional[str] = None,
     domain: Optional[str] = None,
     min_reputation: Optional[int] = 0,
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(COMPANY_ONLY),
     db: Session = Depends(get_db)
 ):
     query = db.query(models.StudentProfile, models.User).join(models.User, models.StudentProfile.user_id == models.User.id)
@@ -54,7 +56,6 @@ def it_talent_search(
             "avatar_url": user.avatar_url,
             "contributions_count": len(contribs),
             "projects_count": len(projects),
-            "project_domain": domain or "",
             "experience_level": f"{profile.year_of_study} · {len(skills)} Verified Core Skills"
         })
     return results
@@ -64,7 +65,7 @@ def non_it_talent_search(
     domain: Optional[str] = None,
     college: Optional[str] = None,
     min_reputation: Optional[int] = 0,
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(COMPANY_ONLY),
     db: Session = Depends(get_db)
 ):
     query = db.query(models.StudentProfile, models.User).join(models.User, models.StudentProfile.user_id == models.User.id)
@@ -86,7 +87,6 @@ def non_it_talent_search(
             "skills": profile.skills_json,
             "avatar_url": user.avatar_url,
             "contributions_count": len(contribs),
-            "domain_focus": domain or "",
             "experience_level": profile.year_of_study
         })
     return results
@@ -134,7 +134,7 @@ def send_contact_request(req_in: schemas.ContactRequestCreate, user: models.User
     if not student_user:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    company_name = user.full_name if user else "PoOS Company"
+    company_name = user.full_name
     student_name = student_user.full_name
     sid = student_user.id
 
@@ -153,7 +153,7 @@ def send_contact_request(req_in: schemas.ContactRequestCreate, user: models.User
 @router.post("/search-jd")
 def search_talent_by_jd(
     payload: schemas.JDSearchRequest,
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(COMPANY_ONLY),
     db: Session = Depends(get_db)
 ):
     """
@@ -174,49 +174,59 @@ def search_talent_by_jd(
 
     search_corpus = f"{jd_text} {skill_filter} {domain_filter}"
     search_words = set([w.strip() for w in search_corpus.split() if len(w.strip()) > 2])
+    search_terms = [w for w in search_words]
 
     for profile, user in candidates:
         contribs = db.query(models.Contribution).filter(models.Contribution.contributor_id == user.id).all()
         projects = db.query(models.Project).filter(models.Project.owner_id == user.id).all()
         skills = profile.skills_json or []
 
-        score = 65  # Base match baseline
         reasoning = []
         matched_skills = []
         matched_projects = []
+        matched_keywords = 0
 
         # 1. Skill Match
         cand_skills = [s["name"] for s in skills if isinstance(s, dict) and "name" in s]
+        cand_skills_lower = [s.lower() for s in cand_skills]
+        for term in search_terms:
+            if any(term in sk for sk in cand_skills_lower) or (skill_filter and skill_filter in sk for sk in cand_skills_lower):
+                matched_keywords += 1
         for sk in cand_skills:
-            if any(term in sk.lower() for term in search_words) or (skill_filter and skill_filter in sk.lower()):
-                score += 10
+            if skill_filter and skill_filter in sk.lower():
+                matched_skills.append(sk)
+            elif any(term in sk.lower() for term in search_terms):
                 matched_skills.append(sk)
 
         # 2. Project Match
         for proj in projects:
             p_tech = " ".join(proj.tech_stack_json or []).lower()
-            if any(term in proj.title.lower() or term in p_tech for term in search_words):
-                score += 8
+            if any(term in proj.title.lower() or term in p_tech for term in search_terms):
                 matched_projects.append(proj.title)
 
         # 3. Domain & Department Alignment
-        dept = profile.department.lower()
+        dept = (profile.department or "").lower()
         bio = (profile.bio or "").lower()
-        if any(term in dept or term in bio for term in search_words):
-            score += 7
+        domain_aligned = any(term in dept or term in bio for term in search_terms)
+        if domain_aligned:
             reasoning.append(f"Department & Bio align with domain ({profile.department})")
 
         # 4. Verified Contributions Evidence
         if len(contribs) > 0:
-            score += 5
-            reasoning.append(f"{len(contribs)} verified merged pull requests in PostgreSQL DB")
+            reasoning.append(f"{len(contribs) or 0} contributions recorded in database")
 
         if matched_skills:
-            reasoning.insert(0, f"Verified technical skills match JD: {', '.join(matched_skills[:3])}")
+            reasoning.insert(0, f"Verified technical skills match JD: {', '.join(sorted(set(matched_skills))[:3])}")
         if matched_projects:
-            reasoning.insert(1, f"Maintains aligned project repositories: {', '.join(matched_projects[:2])}")
+            reasoning.insert(1, f"Maintains aligned project repositories: {', '.join(sorted(set(matched_projects))[:2])}")
 
-        score = min(score, 99)
+        # Real keyword-overlap match score computed from the JD terms and the
+        # candidate's verified skills/domain only. Reports None when there is no
+        # query to match against, rather than inventing a percentage.
+        if not search_terms:
+            match_score = None
+        else:
+            match_score = round(100 * matched_keywords / len(search_terms))
 
         results.append({
             "id": profile.id,
@@ -230,16 +240,16 @@ def search_talent_by_jd(
             "verified": profile.verified_by_college,
             "skills": skills,
             "avatar_url": user.avatar_url,
-            "match_score": score,
-            "matched_skills": list(set(matched_skills)),
-            "matched_projects": list(set(matched_projects)),
+            "match_score": match_score,
+            "matched_skills": sorted(set(matched_skills)),
+            "matched_projects": sorted(set(matched_projects)),
             "reasoning_bullets": reasoning,
             "contributions_count": len(contribs),
             "projects_count": len(projects),
             "experience_level": f"{profile.year_of_study} · {len(skills)} Verified Skills"
         })
 
-    results.sort(key=lambda x: x["match_score"], reverse=True)
+    results.sort(key=lambda x: (x["match_score"] is not None, x["match_score"] or 0), reverse=True)
     return {
         "total_ranked": len(results),
         "rankings": results

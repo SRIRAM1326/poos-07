@@ -7,6 +7,8 @@ from app.models import models
 from app.services.github_service import (
     GITHUB_SCOPES,
     SCORE_WEIGHTS,
+    fetch_contributions_summary,
+    fetch_language_summary,
     fetch_recent_activity,
     sync_github_account,
 )
@@ -34,6 +36,13 @@ def _account_public(account: models.GitHubAccount) -> dict:
         "bio": account.bio,
         "email": account.email,
         "html_url": account.html_url,
+        "company": account.company,
+        "location": account.location,
+        "blog": account.blog,
+        "followers": account.followers or 0,
+        "following": account.following or 0,
+        "public_repos": account.public_repos or 0,
+        "account_created_at": account.account_created_at.isoformat() if account.account_created_at else None,
         "scope": account.scope,
     }
 
@@ -66,7 +75,11 @@ def github_profile(
     db: Session = Depends(get_db),
 ):
     account = _account_or_404(db, current_user)
-    return _account_public(account)
+    return {
+        **_account_public(account),
+        "last_sync_at": account.last_sync_at.isoformat() if account.last_sync_at else None,
+        "last_sync_error": account.last_sync_error,
+    }
 
 
 @router.get("/repositories")
@@ -91,6 +104,11 @@ def github_repositories(
                 "default_branch": repo.default_branch,
                 "visibility": repo.visibility,
                 "owner_login": repo.owner_login,
+                "primary_language": repo.primary_language,
+                "size": repo.size or 0,
+                "open_issues_count": repo.open_issues_count or 0,
+                "license_name": repo.license_name,
+                "archived": repo.archived or False,
                 "languages": repo.languages_json or {},
                 "topics": repo.topics_json or [],
                 "stargazers_count": repo.stargazers_count,
@@ -104,6 +122,15 @@ def github_repositories(
             for repo in repos
         ],
     }
+
+
+@router.get("/languages")
+def github_languages(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    account = _account_or_404(db, current_user)
+    return fetch_language_summary(db, account)
 
 
 @router.get("/statistics")
@@ -138,6 +165,15 @@ def github_statistics(
     }
 
 
+@router.get("/contributions")
+def github_contributions(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    account = _account_or_404(db, current_user)
+    return fetch_contributions_summary(db, account)
+
+
 @router.get("/activity")
 def github_activity(
     current_user: models.User = Depends(get_current_user),
@@ -163,7 +199,7 @@ def github_sync(
     }
 
 
-@router.delete("/connection")
+@router.delete("/disconnect")
 def github_disconnect(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -171,6 +207,17 @@ def github_disconnect(
     account = db.query(models.GitHubAccount).filter(models.GitHubAccount.user_id == current_user.id).first()
     if account is None:
         raise HTTPException(status_code=404, detail="No GitHub account is connected.")
+    # Remove the account and its data. Cascades handle repositories and sync logs,
+    # deleting the account row also removes the encrypted OAuth token from the DB.
     db.delete(account)
     db.commit()
     return {"status": "disconnected"}
+
+
+@router.delete("/connection")
+def github_disconnect_legacy(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Backwards-compatible alias for DELETE /disconnect."""
+    return github_disconnect(current_user=current_user, db=db)

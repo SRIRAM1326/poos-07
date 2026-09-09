@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -70,22 +71,11 @@ def get_student_profile(user_id: int, current_user: models.User = Depends(get_cu
         "personal_website_url": user.portfolio_url if user else None,
         "reputation_score": profile.reputation_score or 0,
         "verified_by_college": profile.verified_by_college,
-        "profile_completion_pct": 0,
         "contribution_score": profile.reputation_score or 0,
         "active_projects_count": len(project_ids),
         "total_commits": total_commits,
         "total_prs": total_prs,
         "merged_prs": total_prs,
-        "issues_solved": 0,
-        "code_reviews": 0,
-        "tasks_completed": 0,
-        "streak_days": 0,
-        "college_rank": None,
-        "college_total_students": None,
-        "global_rank": None,
-        "global_total_devs": None,
-        "dept_rank": None,
-        "dept_total_students": None,
         "skills_json": verified_skills,
         "activity_timeline": timeline,
         "badges": [
@@ -93,8 +83,6 @@ def get_student_profile(user_id: int, current_user: models.User = Depends(get_cu
             for b in badges
         ],
         "certificates_count": certs_count,
-        "recommended_projects": [],
-        "recommended_mentors": [],
         "notifications": [
             {
                 "id": n.id,
@@ -106,7 +94,6 @@ def get_student_profile(user_id: int, current_user: models.User = Depends(get_cu
             }
             for n in notifications
         ],
-        "analytics": {},
     }
 
 @router.get("/college/pending-students")
@@ -157,6 +144,11 @@ def get_college_profile(user_id: int, current_user: models.User = Depends(get_cu
         .order_by(models.StudentProfile.reputation_score.desc())
         .limit(10).all()
     )
+    project_member_counts = dict(
+        db.query(models.ProjectMember.project_id, func.count(models.ProjectMember.id))
+        .group_by(models.ProjectMember.project_id)
+        .all()
+    )
     rankings = [
         {
             "rank": i + 1,
@@ -183,18 +175,13 @@ def get_college_profile(user_id: int, current_user: models.User = Depends(get_cu
         "is_verified": profile.is_verified,
         "student_count": profile.student_count,
         "verified_students_count": verified_students_count,
-        "active_students_count": 0,
-        "active_developers_count": 0,
         "active_projects_count": profile.active_projects_count,
         "certificates_issued_count": certs_count,
         "events_count": events_count,
-        "college_rank": None,
-        "college_total_rank": None,
         "total_contributions": {
             "commits": contribs_count,
             "prs": prs_count,
             "merged_prs": prs_count,
-            "issues_solved": 0,
         },
         "departments_json": profile.departments_json or [],
         "college_projects": [
@@ -203,10 +190,10 @@ def get_college_profile(user_id: int, current_user: models.User = Depends(get_cu
                 "title": p.title,
                 "tagline": p.tagline,
                 "project_type": p.project_type,
-                "participation_scope": p.participation_scope,
+                "scope": p.scope,
                 "status": p.status,
                 "stars_count": p.stars_count,
-                "contributors_count": p.contributors_count,
+                "contributors_count": project_member_counts.get(p.id, 0),
                 "tech_stack_json": p.tech_stack_json or [],
             }
             for p in projects

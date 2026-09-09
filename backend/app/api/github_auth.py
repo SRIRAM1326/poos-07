@@ -30,15 +30,12 @@ def _ensure_role_profile(db: Session, user: models.User) -> None:
         if existing is None:
             db.add(models.StudentProfile(
                 user_id=user.id,
-                college_name="Not Provided",
-                department="Computer Science & Engineering",
                 github_handle=user.username,
-                bio=user.full_name,
             ))
     elif user.role == "MENTOR":
         existing = db.query(models.MentorProfile).filter(models.MentorProfile.user_id == user.id).first()
         if existing is None:
-            db.add(models.MentorProfile(user_id=user.id, bio=user.full_name))
+            db.add(models.MentorProfile(user_id=user.id))
 
 
 def _user_payload(user: models.User) -> dict:
@@ -167,7 +164,6 @@ def github_oauth_callback(
         db.add(user)
         db.flush()
         was_new_user = True
-        _ensure_role_profile(db, user)
     else:
         if user.role not in GITHUB_ROLES:
             raise HTTPException(

@@ -44,18 +44,31 @@ export const SuperProfileView: React.FC<SuperProfileViewProps> = ({
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px' }}>
           <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', flex: 1, minWidth: '300px' }}>
             <div style={{ position: 'relative' }}>
-              <img
-                src={profile.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
-                alt={profile.full_name}
+              <div
                 style={{
                   width: '104px',
                   height: '104px',
                   borderRadius: '50%',
                   border: '4px solid var(--gold-primary)',
                   objectFit: 'cover',
-                  boxShadow: 'var(--shadow-gold)'
+                  boxShadow: 'var(--shadow-gold)',
+                  background: 'var(--bg-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '40px',
+                  fontWeight: 800,
+                  color: 'var(--gold-dark)',
+                  fontFamily: 'var(--font-heading)',
+                  overflow: 'hidden'
                 }}
-              />
+              >
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  (profile.full_name || 'S').charAt(0).toUpperCase()
+                )}
+              </div>
               <span className="gold-badge green" style={{ position: 'absolute', bottom: '-8px', left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap', fontSize: '10px', padding: '2px 8px' }}>
                 <CheckCircle size={11} /> {profile.verified_by_college ? 'Verified' : 'Student'}
               </span>
@@ -369,18 +382,6 @@ export const SuperProfileView: React.FC<SuperProfileViewProps> = ({
             <div style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: '6px', textAlign: 'center' }}>
               <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent-green)' }}>{profile.merged_prs} / {profile.total_prs}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Merged PRs</div>
-            </div>
-            <div style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--blue-primary)' }}>{profile.issues_solved}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Issues Solved</div>
-            </div>
-            <div style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--purple-primary)' }}>{profile.code_reviews}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Code Reviews</div>
-            </div>
-            <div style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--gold-dark)' }}>{profile.tasks_completed}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Tasks Completed</div>
             </div>
           </div>
 

@@ -7,10 +7,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.core.database import engine, Base, SessionLocal
 from app.models import models
 
-def init_db(force_reseed: bool = True):
+def init_db(force_reseed: bool = False):
     print("Initializing database tables in Supabase PostgreSQL...")
     Base.metadata.create_all(bind=engine)
     print("Tables verified/created successfully!")
+
+    # Seeding injects a fabricated demo dataset into the live database. It is
+    # intentionally disabled unless explicitly requested via POOS_ALLOW_SEED,
+    # so production data is never wiped or polluted with mock records.
+    if os.getenv("POOS_ALLOW_SEED") != "1":
+        print("Seeding is disabled. Set POOS_ALLOW_SEED=1 to populate the demo dataset.")
+        return
 
     db = SessionLocal()
     try:
@@ -603,4 +610,7 @@ def init_db(force_reseed: bool = True):
         db.close()
 
 if __name__ == "__main__":
-    init_db(force_reseed=True)
+    if os.getenv("POOS_ALLOW_SEED") != "1":
+        print("Refusing to seed. Set POOS_ALLOW_SEED=1 to explicitly allow loading the demo dataset.")
+    else:
+        init_db(force_reseed=os.getenv("POOS_FORCE_RESEED") == "1")

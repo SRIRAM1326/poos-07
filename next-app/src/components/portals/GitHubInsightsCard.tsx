@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Code, ExternalLink, Globe, RefreshCw, PlugZap, Unplug, Loader2, CheckCircle2, AlertTriangle, Star, GitPullRequest, GitCommitHorizontal, GitFork } from 'lucide-react';
+import { Code, ExternalLink, Globe, RefreshCw, PlugZap, Unplug, Loader2, CheckCircle2, AlertTriangle, Star, GitPullRequest, GitCommitHorizontal, GitFork, Zap, Building2, MapPin, Link2, Users, CalendarDays, MessageSquareCode, ThumbsUp, Clock } from 'lucide-react';
 import { api, getAuthToken, getCurrentUserId } from '@/services/api';
 
 type StatusState =
@@ -25,6 +25,24 @@ const fmtDate = (value: string | null | undefined): string => {
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
+const relativeTime = (value: string | null | undefined): string => {
+  if (!value) return 'Not synced yet';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} month${months === 1 ? '' : 's'} ago`;
+  const years = Math.floor(months / 12);
+  return `${years} year${years === 1 ? '' : 's'} ago`;
+};
+
 const actionLabels: Record<string, string> = {
   PushEvent: 'Pushed to',
   PullRequestEvent: 'Opened / updated PR in',
@@ -36,15 +54,45 @@ const actionLabels: Record<string, string> = {
   WatchEvent: 'Starred',
 };
 
+const LANGUAGE_COLORS: Record<string, string> = {
+  Python: '#3572A5',
+  TypeScript: '#3178c6',
+  JavaScript: '#f1e05a',
+  HTML: '#e34c26',
+  CSS: '#563d7c',
+  Java: '#b07219',
+  'C++': '#f34b7d',
+  C: '#555555',
+  'C#': '#178600',
+  Go: '#00ADD8',
+  Rust: '#dea584',
+  Ruby: '#701516',
+  PHP: '#4F5D95',
+  Shell: '#89e051',
+  Swift: '#F05138',
+  Kotlin: '#A97BFF',
+  Dart: '#00B4AB',
+  Vue: '#41b883',
+  'Jupyter Notebook': '#DA5B0B',
+  Dockerfile: '#384d54',
+  Makefile: '#427819',
+  Scheme: '#1e4aec',
+  Scala: '#c22d40',
+  Haskell: '#5e5086',
+  Lua: '#000080',
+  'Objective-C': '#438eff',
+};
+
+const langColor = (lang: string): string => LANGUAGE_COLORS[lang] || '#8b949e';
+
 export const GitHubInsightsCard: React.FC = () => {
   const [statusState, setStatusState] = React.useState<StatusState>('idle');
   const [status, setStatus] = React.useState<any>(null);
   const [statistics, setStatistics] = React.useState<any>(null);
   const [repositories, setRepositories] = React.useState<any[]>([]);
   const [activity, setActivity] = React.useState<any[]>([]);
+  const [languages, setLanguages] = React.useState<any[]>([]);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-
-  const connected = !!status?.connected;
 
   const loadStatus = React.useCallback(async () => {
     if (!getAuthToken() || !getCurrentUserId()) {
@@ -57,19 +105,22 @@ export const GitHubInsightsCard: React.FC = () => {
       setStatus(result);
       if (result.connected) {
         setStatusState('loading_data');
-        const [statsResult, reposResult, activityResult] = await Promise.all([
+        const [statsResult, reposResult, activityResult, langResult] = await Promise.all([
           api.getGitHubStatistics(),
           api.getGitHubRepositories(),
           api.getGitHubActivity(),
+          api.getGitHubLanguages(),
         ]);
         setStatistics(statsResult);
         setRepositories(reposResult?.repositories || []);
         setActivity(activityResult?.activity || []);
+        setLanguages(langResult?.languages || []);
         setStatusState('connected');
       } else {
         setStatistics(null);
         setRepositories([]);
         setActivity([]);
+        setLanguages([]);
         setStatusState('not_connected');
       }
       setErrorMessage(null);
@@ -96,8 +147,16 @@ export const GitHubInsightsCard: React.FC = () => {
     setStatusState('syncing');
     try {
       const result = await api.postGitHubSync();
-      const statsResult = await api.getGitHubStatistics();
+      const [statsResult, reposResult, activityResult, langResult] = await Promise.all([
+        api.getGitHubStatistics(),
+        api.getGitHubRepositories(),
+        api.getGitHubActivity(),
+        api.getGitHubLanguages(),
+      ]);
       setStatistics(statsResult);
+      setRepositories(reposResult?.repositories || []);
+      setActivity(activityResult?.activity || []);
+      setLanguages(langResult?.languages || []);
       setStatus(result);
       setStatusState('connected');
       setErrorMessage(null);
@@ -115,6 +174,7 @@ export const GitHubInsightsCard: React.FC = () => {
       setStatistics(null);
       setRepositories([]);
       setActivity([]);
+      setLanguages([]);
       setStatusState('not_connected');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to disconnect GitHub.');
@@ -182,9 +242,12 @@ export const GitHubInsightsCard: React.FC = () => {
 
   const totals = statistics?.totals || {};
   const account = status?.account;
+  const topLangs = (languages || []).slice(0, 8);
+  const maxLangPct = Math.max(1, ...(topLangs.map((l) => l.percentage || 0)));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* Profile + Header */}
       <div className="gold-card" style={{ padding: '24px' }}>
         <div className="gold-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '17px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -193,7 +256,7 @@ export const GitHubInsightsCard: React.FC = () => {
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="gold-badge green"><CheckCircle2 size={12} /> Connected as @{account?.login}</span>
             <button onClick={runSync} className="gold-btn" style={{ fontSize: '12px', padding: '4px 12px' }}>
-              <RefreshCw size={13} /> {statusState === 'syncing' ? 'Syncing…' : 'Sync GitHub'}
+              <RefreshCw size={13} className={statusState === 'syncing' ? 'spin' : ''} /> {statusState === 'syncing' ? 'Syncing…' : 'Sync GitHub'}
             </button>
             <button onClick={disconnect} className="gold-btn-outline" style={{ fontSize: '12px', padding: '4px 12px', color: 'var(--danger)' }}>
               <Unplug size={13} /> Disconnect
@@ -201,20 +264,33 @@ export const GitHubInsightsCard: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
           {account?.avatar_url && (
-            <img src={account.avatar_url} alt={account?.login} style={{ width: '52px', height: '52px', borderRadius: '50%', border: '2px solid var(--gold-primary)' }} />
+            <img src={account.avatar_url} alt={account?.login} style={{ width: '64px', height: '64px', borderRadius: '50%', border: '2px solid var(--gold-primary)' }} />
           )}
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--text-main)' }}>
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <div style={{ fontWeight: 800, fontSize: '18px', color: 'var(--text-main)' }}>
               {account?.name || account?.login}
             </div>
             <a href={account?.html_url} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: 'var(--blue-primary)', textDecoration: 'underline' }}>
               <Globe size={13} style={{ display: 'inline', marginRight: '4px' }} />github.com/{account?.login} <ExternalLink size={11} />
             </a>
+            {account?.bio && <div style={{ fontSize: '13px', color: 'var(--text-soft)', marginTop: '6px', maxWidth: '520px', lineHeight: '1.5' }}>{account.bio}</div>}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              {account?.company && <span><Building2 size={12} style={{ display: 'inline', marginRight: '4px' }} />{account.company}</span>}
+              {account?.location && <span><MapPin size={12} style={{ display: 'inline', marginRight: '4px' }} />{account.location}</span>}
+              {account?.blog && (
+                <a href={account.blog.startsWith('http') ? account.blog : `https://${account.blog}`} target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)' }}>
+                  <Link2 size={12} style={{ display: 'inline', marginRight: '4px' }} />{account.blog.replace(/^https?:\/\//, '')}
+                </a>
+              )}
+              <span><Users size={12} style={{ display: 'inline', marginRight: '4px' }} />{num(account?.followers)} followers · {num(account?.following)} following</span>
+              <span><Star size={12} style={{ display: 'inline', marginRight: '4px' }} />{num(account?.public_repos)} public repos</span>
+              {account?.account_created_at && <span><CalendarDays size={12} style={{ display: 'inline', marginRight: '4px' }} />Joined {fmtDate(account.account_created_at)}</span>}
+            </div>
           </div>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-            Last synced: {fmtDate(status?.last_sync_at)}
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Clock size={12} /> Last synced {relativeTime(status?.last_sync_at)}
           </span>
         </div>
 
@@ -267,7 +343,44 @@ export const GitHubInsightsCard: React.FC = () => {
               <div className="num">{num(totals.prs_open)} <span>open</span></div>
               <div className="lbl">Open PRs / Open Issues: {num(totals.issues_open)}</div>
             </div>
+            {totals.reviews_approved !== undefined && (
+              <div className="stat-box">
+                <div className="num" style={{ color: 'var(--accent-green)' }}>{num(totals.reviews_approved)} <span>approved</span></div>
+                <div className="lbl"><ThumbsUp size={12} style={{ display: 'inline', marginRight: '4px' }} /> Reviews Approved</div>
+              </div>
+            )}
+            {totals.reviews_changes_requested !== undefined && (
+              <div className="stat-box">
+                <div className="num" style={{ color: 'var(--amber-primary)' }}>{num(totals.reviews_changes_requested)} <span>requested</span></div>
+                <div className="lbl"><MessageSquareCode size={12} style={{ display: 'inline', marginRight: '4px' }} /> Changes Requested</div>
+              </div>
+            )}
           </div>
+
+          {/* Top Languages */}
+          {topLangs.length > 0 && (
+            <div className="gold-card" style={{ padding: '20px' }}>
+              <div className="gold-card-header">
+                <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '15px', fontWeight: 800 }}>
+                  <Zap size={14} color="var(--gold-primary)" style={{ display: 'inline', marginRight: '4px' }} />
+                  Top Languages (from byte statistics)
+                </h3>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                {topLangs.map((lang) => (
+                  <div key={lang.name}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>
+                      <span style={{ color: 'var(--text-main)', fontWeight: 700 }}>{lang.name}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>{lang.percentage}%</span>
+                    </div>
+                    <div style={{ height: '8px', background: 'var(--bg-subtle)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${(lang.percentage / maxLangPct) * 100}%`, height: '100%', background: langColor(lang.name), borderRadius: '4px' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="gold-card" style={{ padding: '20px' }}>
             <div className="gold-card-header">
@@ -276,18 +389,36 @@ export const GitHubInsightsCard: React.FC = () => {
                 Score = commits×10 + merged PRs×35 + issues×20 + reviews×5
               </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+              {repositories.length === 0 && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No public repositories found. Once you push public code, this list will populate after the next sync.</div>}
               {repositories.slice(0, 20).map((repo) => {
                 const rs = repo.statistics || {};
                 return (
                   <div key={repo.github_repo_id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', padding: '12px 16px', background: 'var(--bg-subtle)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <div>
-                      <a href={repo.html_url} target="_blank" rel="noreferrer" style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
-                        {repo.full_name} <ExternalLink size={11} />
-                      </a>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px' }}>
-                        <Star size={11} style={{ display: 'inline', marginRight: '2px' }} />{repo.stargazers_count || 0} · pushed {fmtDate(repo.pushed_at)}
-                      </span>
+                    <div style={{ minWidth: '200px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <a href={repo.html_url} target="_blank" rel="noreferrer" style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
+                          {repo.full_name} <ExternalLink size={11} />
+                        </a>
+                        {repo.is_fork && <span className="gold-badge amber" style={{ fontSize: '9px', padding: '1px 6px' }}>fork</span>}
+                        {repo.archived && <span className="gold-badge" style={{ fontSize: '9px', padding: '1px 6px' }}>archived</span>}
+                      </div>
+                      {repo.description && (
+                        <div style={{ fontSize: '12px', color: 'var(--text-soft)', marginTop: '3px' }}>{repo.description}</div>
+                      )}
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '6px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {repo.primary_language && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: langColor(repo.primary_language), display: 'inline-block' }} />
+                            {repo.primary_language}
+                          </span>
+                        )}
+                        <span><Star size={11} style={{ display: 'inline', marginRight: '2px' }} />{repo.stargazers_count || 0}</span>
+                        <span><GitFork size={11} style={{ display: 'inline', marginRight: '2px' }} />{repo.forks_count || 0}</span>
+                        {repo.open_issues_count > 0 && <span>issues: {repo.open_issues_count}</span>}
+                        {repo.license_name && <span>{repo.license_name}</span>}
+                        <span>pushed {fmtDate(repo.pushed_at)}</span>
+                      </div>
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-soft)', fontFamily: 'var(--font-mono)', textAlign: 'right' }}>
                       {num(rs.commits)} commits · {num(rs.prs)} PRs · {num(rs.issues_solved)} issues · {num(rs.reviews)} reviews · +{num(rs.additions)}/−{num(rs.deletions)}
@@ -302,7 +433,7 @@ export const GitHubInsightsCard: React.FC = () => {
             <div className="gold-card-header">
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '15px', fontWeight: 800 }}>Recent GitHub Activity</h3>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
               {activity.length === 0 && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No recent public activity.</div>}
               {activity.map((ev) => (
                 <div key={ev.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: '6px', fontSize: '13px' }}>

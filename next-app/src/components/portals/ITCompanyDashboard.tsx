@@ -70,9 +70,15 @@ export const ITCompanyDashboard: React.FC<ITCompanyDashboardProps> = ({ activeTa
   }, []);
 
   const handleAIMatch = async () => {
+    if (!aiQuery.trim()) {
+      setSuccessToast('Please enter a job description or search query first.');
+      setTimeout(() => setSuccessToast(''), 3000);
+      return;
+    }
     setAiMatching(true);
     try {
-      const res = await api.matchCandidateWithAI(aiQuery || "FastAPI Python Vector Search Distributed Systems");
+      const query = aiQuery.trim();
+      const res = await api.matchCandidateWithAI(query);
       setCandidates(Array.isArray(res?.rankings) ? res.rankings : []);
       setSuccessToast(`AI Engine ranked ${res?.total_ranked ?? 0} candidate profiles with 0-hallucination Supabase verification!`);
       setTimeout(() => setSuccessToast(''), 4000);
@@ -147,7 +153,7 @@ export const ITCompanyDashboard: React.FC<ITCompanyDashboardProps> = ({ activeTa
               </span>
             </div>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--green-primary)', marginTop: '4px' }}>
-              {companyProfile?.industry || 'Enterprise Software'} · {companyProfile?.location || 'Bengaluru / Hybrid'}
+              {companyProfile?.industry || '—'} · {companyProfile?.location || '—'}
             </p>
           </div>
         </div>

@@ -49,8 +49,13 @@ export default function Home() {
   };
 
   // Restore an active session on load, or complete an in-flight OAuth callback.
+  // Event handlers below run under React StrictMode (dev), which mounts and
+  // unmounts this effect twice. Because OAuth params are stripped from the URL
+  // synchronously below, a remount can never re-send the single-use code/state,
+  // and the second (surviving) run is the one that sets `bootstrapped`.
   React.useEffect(() => {
     let cancelled = false;
+
     async function initialize() {
       if (typeof window === 'undefined') return;
       const params = new URLSearchParams(window.location.search);
@@ -58,6 +63,13 @@ export default function Home() {
       const githubState = params.get('state');
       const isGithub = params.get('github_auth') === 'success';
       const isGoogle = params.get('google_auth') === 'success';
+
+      // OAuth codes and state tokens are single-use. Strip them from the URL as
+      // soon as they are read so a reload or second tab cannot re-send an
+      // already-consumed pair (which would fail with a 403).
+      if (isGithub || isGoogle) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
 
       try {
         if (isGithub || isGoogle) {
@@ -97,6 +109,20 @@ export default function Home() {
       } catch (err) {
         console.error(err);
         if (!cancelled) {
+          // If a valid token already exists (e.g. a duplicate tab completed the
+          // single-use OAuth exchange first), restore that session instead of
+          // clearing it and showing an error.
+          if (getAuthToken()) {
+            try {
+              const res = await api.me();
+              if (res.user) {
+                applySessionUser(res.user, true);
+                return;
+              }
+            } catch {
+              // No working session; fall through to the error + clear below.
+            }
+          }
           setAuthError(err instanceof Error ? err.message : 'Authentication failed. Please try signing in again.');
           clearAuthSession();
         }

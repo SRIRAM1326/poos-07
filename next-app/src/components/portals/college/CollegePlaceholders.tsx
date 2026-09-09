@@ -1,5 +1,4 @@
 import React from 'react';
-import { collegeMockData } from '@/data/collegeMockData';
 
 export const PlaceholderComponent: React.FC<{ title: string; description: string }> = ({ title, description }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.3s ease' }}>
@@ -9,7 +8,7 @@ export const PlaceholderComponent: React.FC<{ title: string; description: string
     </div>
     <div className="gold-card">
       <div className="gold-card-body" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-        This module is currently using a placeholder component. Mock data mapping to come.
+        No data to display yet.
       </div>
     </div>
   </div>

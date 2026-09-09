@@ -16,7 +16,7 @@ class SessionCreateSchema(BaseModel):
     duration_minutes: int = 45
 
 class StatusUpdateSchema(BaseModel):
-    status: Optional[str] = "ACCEPTED"
+    status: Optional[str] = None
 
 @router.post("/book", status_code=status.HTTP_201_CREATED)
 def book_session(data: SessionCreateSchema, user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -25,8 +25,8 @@ def book_session(data: SessionCreateSchema, user: models.User = Depends(get_curr
 
     if not mentor_user:
         raise HTTPException(status_code=404, detail="Mentor not found")
-    student_name = student_user.full_name if student_user else "PoOS Student"
-    mentor_name = mentor_user.full_name if mentor_user else "PoOS Mentor"
+    student_name = student_user.full_name
+    mentor_name = mentor_user.full_name
 
     new_session = models.MentorSession(
         student_id=user.id,
@@ -68,7 +68,9 @@ def update_session_status(
     if session_obj.mentor_id != user.id:
         raise HTTPException(status_code=403, detail="Only the session mentor can update this session")
 
-    new_status = (data.status if data else None) or status or "ACCEPTED"
+    new_status = (data.status if data else None) or status
+    if not new_status:
+        raise HTTPException(status_code=400, detail="A status is required to update the session")
     session_obj.status = new_status
     db.commit()
     db.refresh(session_obj)

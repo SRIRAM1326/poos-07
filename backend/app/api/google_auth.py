@@ -25,11 +25,7 @@ def _ensure_role_profile(db: Session, user: models.User) -> None:
     if user.role == "COLLEGE_ADMIN":
         existing = db.query(models.CollegeProfile).filter(models.CollegeProfile.user_id == user.id).first()
         if existing is None:
-            db.add(models.CollegeProfile(
-                user_id=user.id,
-                college_name="My Institution",
-                college_code="INST-01",
-            ))
+            db.add(models.CollegeProfile(user_id=user.id))
     elif user.role in ("IT_COMPANY", "NON_IT_COMPANY"):
         existing = db.query(models.CompanyProfile).filter(models.CompanyProfile.user_id == user.id).first()
         if existing is None:
@@ -160,8 +156,11 @@ def google_oauth_callback(
         raise HTTPException(status_code=502, detail="Google user response missing account id")
 
     google_email = (google_info.get("email") or "").strip().lower() or None
-    google_name = google_info.get("name") or google_info.get("email") or "PoOS User"
+    google_name = (google_info.get("name") or "").strip() or (google_email or "").split("@")[0]
     google_picture = google_info.get("picture")
+
+    if not google_name:
+        raise HTTPException(status_code=502, detail="Google user response missing name")
 
     user = (
         db.query(models.User)
@@ -194,7 +193,6 @@ def google_oauth_callback(
         db.add(user)
         db.flush()
         was_new_user = True
-        _ensure_role_profile(db, user)
     else:
         if user.role not in GOOGLE_ROLES:
             raise HTTPException(

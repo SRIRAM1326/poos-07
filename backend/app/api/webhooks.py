@@ -131,16 +131,15 @@ def _skipped(reason: str, event_type: str):
         "event_type": event_type,
         "reason": reason,
         "processed_contributions": 0,
-        "contributor": "Unknown Developer",
+        "contributor": None,
         "reputation_points_gained": 0,
-        "database": "Supabase PostgreSQL Updated"
+        "database": "No changes made"
     }
 
 
 def process_webhook_payload(event_type: str, payload: Dict[str, Any], db: Session):
     processed_count = 0
-    contributor_name = "Unknown Developer"
-    reputation_gained = 0
+    contributor_name = None
 
     if event_type == "pull_request" or "pull_request" in payload:
         pr = payload.get("pull_request", {}) or {}
@@ -181,11 +180,10 @@ def process_webhook_payload(event_type: str, payload: Dict[str, Any], db: Sessio
             commit_message=f"PR #{pr_number}: {pr_title}",
             pr_number=pr_number,
             pr_title=pr_title,
-            lines_added=additions if isinstance(additions, int) else 0,
-            lines_deleted=deletions if isinstance(deletions, int) else 0,
+            lines_added=additions if isinstance(additions, int) else None,
+            lines_deleted=deletions if isinstance(deletions, int) else None,
+            status="MERGED",
         ))
-        profile.reputation_score = (profile.reputation_score or 0) + 35
-        reputation_gained = 35
         processed_count = 1
 
     elif event_type == "push":
@@ -225,11 +223,10 @@ def process_webhook_payload(event_type: str, payload: Dict[str, Any], db: Sessio
                 contributor_name=commit_contributor_name,
                 commit_hash=commit_id[:8],
                 commit_message=commit_message,
-                lines_added=0,
-                lines_deleted=0,
+                lines_added=None,
+                lines_deleted=None,
+                status="PENDING",
             ))
-            profile.reputation_score = (profile.reputation_score or 0) + 10
-            reputation_gained += 10
             processed_count += 1
     else:
         return _skipped(f"Unsupported webhook event type '{event_type}'", event_type)
@@ -239,6 +236,6 @@ def process_webhook_payload(event_type: str, payload: Dict[str, Any], db: Sessio
         "event_type": event_type,
         "processed_contributions": processed_count,
         "contributor": contributor_name,
-        "reputation_points_gained": reputation_gained,
-        "database": "Supabase PostgreSQL Updated"
+        "reputation_points_gained": 0,
+        "database": "Contributions recorded"
     }

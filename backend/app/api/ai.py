@@ -22,10 +22,15 @@ def ai_match_projects(user: models.User = Depends(get_current_user), db: Session
         tech_stack = [t.lower() for t in (proj.tech_stack_json or [])]
         overlap = set(verified_skill_names).intersection(set(tech_stack))
 
-        # Compute match percentage based on skill overlap
-        match_score = 60 + (len(overlap) * 15)
-        if match_score > 98:
-            match_score = 98
+        if verified_skill_names and tech_stack:
+            match_score = round(100 * len(overlap) / len(set(tech_stack)))
+        else:
+            match_score = None
+
+        if overlap:
+            rationale = f"Student verified skills overlap project tech stack: {', '.join(sorted(overlap))}"
+        else:
+            rationale = "No verified skill overlap with this project's tech stack."
 
         matched_results.append({
             "task_id": task.id,
@@ -34,11 +39,11 @@ def ai_match_projects(user: models.User = Depends(get_current_user), db: Session
             "project_title": proj.title,
             "priority": task.priority,
             "match_percentage": match_score,
-            "matched_skills": list(overlap),
-            "match_rationale": f"Student verified skill '{', '.join(overlap) if overlap else 'Core Tech'}' aligns with project architecture ({proj.title})"
+            "matched_skills": sorted(overlap),
+            "match_rationale": rationale
         })
 
-    matched_results.sort(key=lambda x: x["match_percentage"], reverse=True)
+    matched_results.sort(key=lambda x: x["match_percentage"] or 0, reverse=True)
     return {
         "student_id": profile.user_id,
         "reputation_score": profile.reputation_score,
@@ -61,16 +66,19 @@ def ai_summarize_profile(payload: Dict[str, Any] = Body(...), db: Session = Depe
     badges = db.query(models.Badge).filter(models.Badge.user_id == profile.user_id).all()
 
     total_pr_count = len(contribs)
-    total_lines_added = sum(c.lines_added for c in contribs)
-    total_lines_deleted = sum(c.lines_deleted for c in contribs)
+    total_lines_added = sum(c.lines_added or 0 for c in contribs)
+    total_lines_deleted = sum(c.lines_deleted or 0 for c in contribs)
     skills_list = [s["name"] for s in (profile.skills_json or []) if s.get("verified")]
 
-    # Strict evidence-based bulleted summary (Zero hallucination)
+    pr_count = sum(1 for c in contribs if c.pr_number)
+    commit_count = total_pr_count - pr_count
+
+    # Strict evidence-based bulleted summary (from stored records only)
     summary_bullets = [
         f"Verified Developer Identity: {user.full_name} ({profile.department}, {profile.college_name}).",
-        f"Contribution Record: {total_pr_count} merged pull requests with +{total_lines_added}/-{total_lines_deleted} verified lines of code in Supabase DB.",
-        f"Verified Core Tech Stack: {', '.join(skills_list)}.",
-        f"Reputation Score: {profile.reputation_score} points earned via technical open-source maintainership.",
+        f"Contribution Record: {total_pr_count} stored contribution(s): {pr_count} pull request(s) and {commit_count} commit(s), with +{total_lines_added}/-{total_lines_deleted} recorded lines.",
+        f"Verified Core Tech Stack: {', '.join(skills_list) if skills_list else 'No verified skills recorded'}.",
+        f"Reputation Score: {profile.reputation_score} points on record.",
         f"Credentials: {len(certs)} official verified certificates and {len(badges)} milestone badges awarded."
     ]
 
@@ -78,7 +86,7 @@ def ai_summarize_profile(payload: Dict[str, Any] = Body(...), db: Session = Depe
         "student_id": profile.user_id,
         "full_name": user.full_name,
         "evidence_summary_bullets": summary_bullets,
-        "grounded_verification": "100% Verified against Supabase PostgreSQL DB records (Zero Hallucination)"
+        "grounded_verification": "Summary generated from stored database records only."
     }
 
 @router.post("/natural-search")
@@ -89,22 +97,16 @@ def ai_natural_search(payload: Dict[str, Any] = Body(...), db: Session = Depends
     results = []
     for profile, user in students:
         skills = [s["name"].lower() for s in (profile.skills_json or [])]
-        dept = profile.department.lower()
+        dept = (profile.department or "").lower()
         bio = (profile.bio or "").lower()
 
-        relevance = 50
         matched_keywords = []
-
         for term in query.split():
-            if term in " ".join(skills):
-                relevance += 20
-                matched_keywords.append(term)
-            if term in dept or term in bio:
-                relevance += 15
+            if any(term in sk for sk in skills) or term in dept or term in bio:
                 matched_keywords.append(term)
 
-        if relevance > 99:
-            relevance = 99
+        search_terms = [t for t in query.split() if len(t) > 2]
+        relevance = round(100 * len(set(matched_keywords)) / len(search_terms)) if search_terms else None
 
         results.append({
             "user_id": user.id,
@@ -113,12 +115,12 @@ def ai_natural_search(payload: Dict[str, Any] = Body(...), db: Session = Depends
             "department": profile.department,
             "reputation_score": profile.reputation_score,
             "relevance_score": relevance,
-            "matched_keywords": list(set(matched_keywords)),
+            "matched_keywords": sorted(set(matched_keywords)),
             "avatar_url": user.avatar_url,
             "skills": profile.skills_json
         })
 
-    results.sort(key=lambda x: x["relevance_score"], reverse=True)
+    results.sort(key=lambda x: x["relevance_score"] if x["relevance_score"] is not None else -1, reverse=True)
     return {
         "query": payload.get("query", ""),
         "total_results": len(results),
@@ -135,23 +137,18 @@ def ai_match_candidate(payload: Dict[str, Any] = Body(...), db: Session = Depend
         contribs = db.query(models.Contribution).filter(models.Contribution.contributor_id == user.id).all()
         skills = [s["name"].lower() for s in (profile.skills_json or []) if s.get("verified")]
 
-        score = 70
         bullets = []
+        req_terms = [t.lower() for t in requirements.split() if len(t) > 2]
+        matched_terms = [t for t in req_terms if any(t in sk for sk in skills)]
+        matched_count = len(set(matched_terms))
+        score = round(100 * matched_count / len(req_terms)) if req_terms else None
 
-        if any(term in " ".join(skills) for term in requirements.split()):
-            score += 18
-            bullets.append(f"Verified expertise in {', '.join(skills[:3])}")
-        
+        if matched_terms:
+            bullets.append(f"Verified expertise matches requirements: {', '.join(sorted(set(skills))[:3])}")
         if len(contribs) > 0:
-            score += 10
-            bullets.append(f"{len(contribs)} merged technical PRs with verified code additions")
-        
-        if profile.reputation_score > 500:
-            score += 2
-            bullets.append(f"High reputation score ({profile.reputation_score} pts)")
-
-        if score > 98:
-            score = 98
+            bullets.append(f"{len(contribs)} stored contribution(s) on record")
+        if profile.reputation_score and profile.reputation_score > 0:
+            bullets.append(f"Reputation score: {profile.reputation_score} pts")
 
         rankings.append({
             "student_id": profile.id,
@@ -166,7 +163,7 @@ def ai_match_candidate(payload: Dict[str, Any] = Body(...), db: Session = Depend
             "github_handle": profile.github_handle
         })
 
-    rankings.sort(key=lambda x: x["match_score"], reverse=True)
+    rankings.sort(key=lambda x: x["match_score"] if x["match_score"] is not None else -1, reverse=True)
     return {
         "requirements": requirements,
         "total_ranked": len(rankings),

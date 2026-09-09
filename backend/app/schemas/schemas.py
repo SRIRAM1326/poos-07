@@ -44,9 +44,9 @@ class StudentProfileSchema(BaseModel):
     id: int
     user_id: int
     roll_number: Optional[str] = None
-    college_name: str
-    department: str
-    year_of_study: str
+    college_name: Optional[str] = None
+    department: Optional[str] = None
+    year_of_study: Optional[str] = None
     bio: Optional[str] = None
     github_handle: Optional[str] = None
     linkedin_url: Optional[str] = None
@@ -61,8 +61,8 @@ class StudentProfileSchema(BaseModel):
 class CollegeProfileSchema(BaseModel):
     id: int
     user_id: int
-    college_name: str
-    college_code: str
+    college_name: Optional[str] = None
+    college_code: Optional[str] = None
     location: Optional[str] = None
     website: Optional[str] = None
     is_verified: bool
@@ -76,10 +76,10 @@ class CollegeProfileSchema(BaseModel):
 class MentorProfileSchema(BaseModel):
     id: int
     user_id: int
-    title: str
-    company: str
+    title: Optional[str] = None
+    company: Optional[str] = None
     experience_years: int
-    domain_expertise: str
+    domain_expertise: Optional[str] = None
     hourly_rate: float
     bio: Optional[str] = None
     rating: float
@@ -94,9 +94,9 @@ class CompanyProfileSchema(BaseModel):
     user_id: int
     company_name: str
     company_type: str
-    industry: str
-    company_size: str
-    location: str
+    industry: Optional[str] = None
+    company_size: Optional[str] = None
+    location: Optional[str] = None
     website: Optional[str] = None
     description: Optional[str] = None
     tech_stack_json: List[str]
@@ -183,8 +183,8 @@ class ContributionCreate(BaseModel):
     commit_message: str
     pr_number: Optional[int] = None
     pr_title: Optional[str] = None
-    lines_added: int = 100
-    lines_deleted: int = 10
+    lines_added: int = 0
+    lines_deleted: int = 0
 
 class ContributionResponse(BaseModel):
     id: int
@@ -206,7 +206,7 @@ class ContributionResponse(BaseModel):
 # --- Shortlist & Contact Requests ---
 class ShortlistCreate(BaseModel):
     student_id: int
-    category: str = "High Potential Technical Candidate"
+    category: Optional[str] = None
     notes: Optional[str] = None
 
 class ContactRequestCreate(BaseModel):
