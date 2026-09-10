@@ -64,23 +64,31 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     setShowBookingModal(true);
   };
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const userId = currentUser?.id || getCurrentUserId();
-        if (!userId) return;
-        const profData = await api.getStudentProfile(userId);
-        const projData = await api.getProjects();
-        setProfile(profData);
-        setProjects(projData);
-      } catch (err) {
-        console.error('Failed loading student dashboard:', err);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = React.useCallback(async (silent: boolean = false) => {
+    try {
+      const userId = currentUser?.id || getCurrentUserId();
+      if (!userId) return;
+      const profData = await api.getStudentProfile(userId);
+      const projData = await api.getProjects();
+      setProfile(profData);
+      if (!silent) setProjects(projData);
+    } catch (err) {
+      console.error('Failed loading student dashboard:', err);
+    } finally {
+      if (!silent) setLoading(false);
     }
-    loadData();
   }, [currentUser]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Auto-refresh the dashboard so contributions and GitHub activity that arrive
+  // via the webhook pipeline appear live without a page reload.
+  useEffect(() => {
+    const timer = window.setInterval(() => loadData(true), 30000);
+    return () => window.clearInterval(timer);
+  }, [loadData]);
 
   useEffect(() => {
     if (!activeTab || activeTab === 'dashboard') return;

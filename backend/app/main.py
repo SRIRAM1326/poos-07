@@ -1,9 +1,12 @@
+import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.models import models
 from app.api import auth, profiles, projects, talent, recognition, webhooks, github_auth, google_auth, ai, mentor_sessions, notifications, messages, events, github
+from app.services.background_sync import periodic_github_sync_loop
 
 from sqlalchemy import text
 
@@ -52,10 +55,27 @@ except Exception as err:
 
 Base.metadata.create_all(bind=engine)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Periodically resync GitHub stats for all connected accounts so activity
+    # reflects in PoOS even when no webhook event is delivered.
+    task = asyncio.create_task(periodic_github_sync_loop())
+    try:
+        yield
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    description="Backend API service for PoOS — Project & Open-source Opportunity System connecting Students, Colleges, Mentors, IT Companies, and Non-IT Companies via Supabase PostgreSQL."
+    description="Backend API service for PoOS — Project & Open-source Opportunity System connecting Students, Colleges, Mentors, IT Companies, and Non-IT Companies via Supabase PostgreSQL.",
+    lifespan=lifespan,
 )
 
 # Enable CORS for configured frontend origins (from env CORS_ORIGINS, no wildcards)

@@ -22,6 +22,12 @@ GITHUB_REPOS_PAGE_SIZE = 100
 GITHUB_SEARCH_CAP = 1000
 GITHUB_STATE_TTL_MINUTES = 10
 GITHUB_ACTIVE_REPO_DAYS = 90
+# Automatic (webhook/periodic) sync throttling. A full sync issues ~10 GitHub
+# search API calls (limit: 30/min with a token) plus a number of core API calls,
+# so we only auto-refresh an account after its last sync is older than these
+# cooldowns. Manual "Sync GitHub" clicks are never throttled.
+AUTO_SYNC_MIN_INTERVAL_SECONDS = 120
+PERIODIC_SYNC_MIN_INTERVAL_SECONDS = 300
 OWNED_REPO_STATS_MAX = 30
 PER_REPO_SEARCH_MAX = 7
 # Language byte counts are fetched per-repo, so cap the number of repos we hit to
@@ -145,6 +151,21 @@ def compute_contribution_score(totals: dict) -> int:
         + int(totals.get("issues_closed", 0) or 0) * SCORE_WEIGHTS["issues_closed"]
         + int(totals.get("code_reviews", 0) or 0) * SCORE_WEIGHTS["code_reviews"]
     )
+
+
+def should_auto_sync(account: GitHubAccount, min_interval_seconds: int = AUTO_SYNC_MIN_INTERVAL_SECONDS) -> bool:
+    """Return True when an automatic (non-manual) sync is allowed for this account.
+
+    Automatic syncs are triggered by GitHub webhooks and by the periodic
+    background task. They are throttled by a per-account cooldown so rapid push
+    storms or high-volume events do not exhaust the GitHub API rate limit.
+    """
+    if not account.is_connected:
+        return False
+    if account.last_sync_at is None:
+        return True
+    elapsed = (datetime.datetime.utcnow() - account.last_sync_at).total_seconds()
+    return elapsed >= min_interval_seconds
 
 
 def _parse_iso(value) -> datetime.datetime | None:

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.core.config import settings
 from app.models import models
+from app.services.github_service import should_auto_sync, sync_github_account
 from typing import Dict, Any, Optional
 
 router = APIRouter(prefix="/webhooks", tags=["GitHub Webhooks Pipeline"])
@@ -29,11 +30,23 @@ def process_webhook_payload_in_session(event_type: str, payload: Dict[str, Any])
     Runs the webhook processing in its own DB session so the caller can
     acknowledge the webhook immediately (async/decoupled from the request).
     Rolls back and logs when processing fails so errors are not silently dropped.
+    After recording any contributions, triggers a stats resync for every
+    connected GitHub account tied to the repository, so real commit/PR/issue
+    activity shows up in PoOS without a manual "Sync GitHub" click.
     """
     db = SessionLocal()
     try:
         result = process_webhook_payload(event_type, payload, db)
         db.commit()
+
+        repository = payload.get("repository", {}) or {}
+        repo_full_name = repository.get("full_name") if isinstance(repository, dict) else None
+        sender = payload.get("sender", {}) or {}
+        sender_login = sender.get("login") if isinstance(sender, dict) else None
+        synced = _sync_accounts_for_webhook(db, repo_full_name, sender_login)
+        db.commit()
+        if synced:
+            result["auto_synced_accounts"] = synced
         return result
     except Exception as exc:
         db.rollback()
@@ -123,6 +136,44 @@ def _find_contributor(db: Session, login: Optional[str]):
     if user is None or not user.is_active:
         return None, None, None
     return user_id, user.full_name, profile
+
+
+def _sync_accounts_for_webhook(db: Session, repo_full_name: Optional[str], sender_login: Optional[str]) -> list:
+    """Resync GitHub statistics for connected accounts affected by a webhook event.
+
+    Accounts are matched two ways so both repo owners and pushing collaborators
+    get refreshed data: by the repository's full_name in github_repositories,
+    and by the sender's GitHub login. Syncs are throttled by a per-account
+    cooldown (see should_auto_sync) to respect GitHub rate limits.
+    """
+    account_ids: set[int] = set()
+    if repo_full_name:
+        repo_rows = db.query(models.GitHubRepository.account_id).filter(
+            models.GitHubRepository.full_name == repo_full_name,
+        ).all()
+        account_ids.update(row[0] for row in repo_rows)
+    if sender_login:
+        login_rows = db.query(models.GitHubAccount.id).filter(
+            models.GitHubAccount.login == sender_login,
+            models.GitHubAccount.is_connected.is_(True),
+        ).all()
+        account_ids.update(row[0] for row in login_rows)
+    if not account_ids:
+        return []
+
+    accounts = db.query(models.GitHubAccount).filter(
+        models.GitHubAccount.id.in_(account_ids),
+        models.GitHubAccount.is_connected.is_(True),
+    ).all()
+
+    synced_logins: list[str] = []
+    for account in accounts:
+        if not should_auto_sync(account):
+            continue
+        sync_github_account(db, account)
+        if account.login:
+            synced_logins.append(account.login)
+    return synced_logins
 
 
 def _skipped(reason: str, event_type: str):

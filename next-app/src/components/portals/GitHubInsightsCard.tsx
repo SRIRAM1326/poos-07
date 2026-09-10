@@ -94,17 +94,19 @@ export const GitHubInsightsCard: React.FC = () => {
   const [languages, setLanguages] = React.useState<any[]>([]);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
-  const loadStatus = React.useCallback(async () => {
+  const loadStatus = React.useCallback(async (silent: boolean = false) => {
     if (!getAuthToken() || !getCurrentUserId()) {
       setStatusState('idle');
       return;
     }
-    setStatusState((prev) => (prev === 'connected' ? prev : 'loading_status'));
+    if (!silent) {
+      setStatusState((prev) => (prev === 'connected' ? prev : 'loading_status'));
+    }
     try {
       const result = await api.getGitHubStatus();
       setStatus(result);
       if (result.connected) {
-        setStatusState('loading_data');
+        if (!silent) setStatusState('loading_data');
         const [statsResult, reposResult, activityResult, langResult] = await Promise.all([
           api.getGitHubStatistics(),
           api.getGitHubRepositories(),
@@ -125,13 +127,27 @@ export const GitHubInsightsCard: React.FC = () => {
       }
       setErrorMessage(null);
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to load GitHub connection state.');
-      setStatusState('error');
+      if (!silent) {
+        setErrorMessage(err?.message || 'Failed to load GitHub connection state.');
+        setStatusState('error');
+      }
     }
   }, []);
 
   React.useEffect(() => {
     loadStatus();
+  }, [loadStatus]);
+
+  // Auto-refresh GitHub data in the background so new commits / PRs / issues
+  // pushed to GitHub appear on the Super Profile without a page reload or a
+  // manual "Sync GitHub" click.
+  React.useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (getAuthToken() && getCurrentUserId()) {
+        loadStatus(true);
+      }
+    }, 30000);
+    return () => window.clearInterval(timer);
   }, [loadStatus]);
 
   const connectGithub = async () => {
@@ -195,7 +211,7 @@ export const GitHubInsightsCard: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-soft)' }}>
           <AlertTriangle size={20} color="var(--amber-primary)" />
           <span>{errorMessage}</span>
-          <button className="gold-btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }} onClick={loadStatus}>
+          <button className="gold-btn-outline" style={{ fontSize: '12px', padding: '4px 12px' }} onClick={() => loadStatus()}>
             Retry
           </button>
         </div>
