@@ -14,12 +14,12 @@ class EventResponse(BaseModel):
     id: int
     title: str
     organizer_name: str
-    event_type: str
-    description: Optional[str]
-    location: str
-    event_date: str
-    participant_count: int
-    scope: str
+    event_type: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    event_date: Optional[str] = None
+    participant_count: Optional[int] = 0
+    scope: Optional[str] = None
     created_at: datetime
 
     class Config:

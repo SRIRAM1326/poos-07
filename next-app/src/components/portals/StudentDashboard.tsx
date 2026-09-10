@@ -677,38 +677,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </div>
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* 10. Real-time Notifications */}
-      {/* ------------------------------------------------------------- */}
-      <div className="gold-card" id="notifications-section">
-        <div className="gold-card-header">
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '17px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Bell size={18} color="var(--gold-primary)" />
-            10. Real-Time Notifications Inbox
-          </h3>
-          <span className="gold-badge green">{profile.notifications?.filter(n => !n.is_read).length || 0} Unread</span>
-        </div>
-        <div className="gold-card-body" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {profile.notifications?.map((notif) => (
-            <div key={notif.id} style={{
-              padding: '12px 16px',
-              background: notif.is_read ? 'var(--bg-surface)' : 'var(--gold-bg)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px'
-            }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-main)' }}>{notif.title}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-soft)', marginTop: '2px' }}>{notif.message}</div>
-              </div>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{notif.timestamp}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* Modals */}
       {showBookingModal && selectedMentor && (

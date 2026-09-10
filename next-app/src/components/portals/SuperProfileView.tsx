@@ -154,25 +154,7 @@ export const SuperProfileView: React.FC<SuperProfileViewProps> = ({
         </div>
       </div>
 
-      {/* 10. Profile Analytics Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-        <div className="stat-box">
-          <div className="num">{profile.analytics?.profile_views_month ?? '—'} <span>views</span></div>
-          <div className="lbl"><Eye size={12} style={{ display: 'inline', marginRight: '4px' }} /> Profile Views (30 days)</div>
-        </div>
-        <div className="stat-box">
-          <div className="num">{profile.analytics?.project_views_month ?? '—'} <span>views</span></div>
-          <div className="lbl"><Code size={12} style={{ display: 'inline', marginRight: '4px' }} /> Project Views</div>
-        </div>
-        <div className="stat-box">
-          <div className="num">{profile.analytics?.company_views_month ?? '—'} <span>recruiters</span></div>
-          <div className="lbl"><Building2 size={12} style={{ display: 'inline', marginRight: '4px' }} /> Company / Recruiter Views</div>
-        </div>
-        <div className="stat-box">
-          <div className="num">{profile.analytics?.mentor_connections ?? '—'} <span>sessions</span></div>
-          <div className="lbl"><Users size={12} style={{ display: 'inline', marginRight: '4px' }} /> Mentor Connections</div>
-        </div>
-      </div>
+
 
       {/* 7. Reputation & Rankings Row */}
       <div className="gold-card">
@@ -363,59 +345,6 @@ export const SuperProfileView: React.FC<SuperProfileViewProps> = ({
         </div>
       </div>
 
-      {/* 5. Contribution Proof & Activity Timeline */}
-      <div className="gold-card" id="contributions">
-        <div className="gold-card-header">
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '17px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Code size={18} color="var(--blue-primary)" />
-            5. Contribution Proof & Verified Timeline
-          </h3>
-          <span className="gold-badge amber">{profile.total_commits} Verified Commits</span>
-        </div>
-        <div className="gold-card-body">
-          {/* Metrics Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-            <div style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)' }}>{profile.total_commits}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Total Commits</div>
-            </div>
-            <div style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent-green)' }}>{profile.merged_prs} / {profile.total_prs}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>Merged PRs</div>
-            </div>
-          </div>
-
-          {/* Activity Feed */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {profile.activity_timeline?.map((item) => (
-              <div key={item.id} style={{
-                padding: '14px 18px',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                borderLeft: `4px solid ${item.type === 'PR_MERGED' ? 'var(--accent-green)' : item.type === 'ISSUE_SOLVED' ? 'var(--blue-primary)' : 'var(--gold-primary)'}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '16px'
-              }}>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-                    {item.title}
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>
-                    Repo: <b>{item.project_name}</b> · {item.details}
-                  </div>
-                </div>
-
-                <span className="gold-badge" style={{ fontSize: '11px' }}>
-                  {item.timestamp}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* 5b. GitHub Contribution & Statistics (Real Data) */}
         <GitHubInsightsCard />
