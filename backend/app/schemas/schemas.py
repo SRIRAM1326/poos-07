@@ -38,6 +38,25 @@ class ProfileSetupRequest(BaseModel):
     company_name: Optional[str] = None
     industry: Optional[str] = None
     description: Optional[str] = None
+    # College Admin profile completion fields (Google OAuth flow)
+    official_email: Optional[str] = None
+    college_website: Optional[str] = None
+    college_logo_url: Optional[str] = None
+    location: Optional[str] = None
+    contact_number: Optional[str] = None
+    accreditation: Optional[str] = None
+    admin_name: Optional[str] = None
+    admin_designation: Optional[str] = None
+    affiliation: Optional[str] = None
+    established_year: Optional[str] = None
+    college_type: Optional[str] = None
+    official_contact_email: Optional[str] = None
+    address: Optional[str] = None
+    instagram_url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    other_links: Optional[List[str]] = None
+    admin_contact_number: Optional[str] = None
+    admin_role: Optional[str] = None
 
 # --- Profile Schemas ---
 class StudentProfileSchema(BaseModel):
@@ -53,6 +72,7 @@ class StudentProfileSchema(BaseModel):
     portfolio_url: Optional[str] = None
     reputation_score: int
     verified_by_college: bool
+    verification_status: Optional[str] = "PENDING"
     skills_json: List[Dict[str, Any]]
 
     class Config:
@@ -65,6 +85,25 @@ class CollegeProfileSchema(BaseModel):
     college_code: Optional[str] = None
     location: Optional[str] = None
     website: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    logo_url: Optional[str] = None
+    description: Optional[str] = None
+    contact_number: Optional[str] = None
+    accreditation: Optional[str] = None
+    admin_name: Optional[str] = None
+    admin_designation: Optional[str] = None
+    affiliation: Optional[str] = None
+    established_year: Optional[str] = None
+    college_type: Optional[str] = None
+    official_contact_email: Optional[str] = None
+    address: Optional[str] = None
+    instagram_url: Optional[str] = None
+    youtube_url: Optional[str] = None
+    other_links_json: List[str] = []
+    admin_contact_number: Optional[str] = None
+    admin_role: Optional[str] = None
+    verified_by: Optional[str] = None
+    verification_date: Optional[str] = None
     is_verified: bool
     student_count: int
     active_projects_count: int
@@ -117,6 +156,32 @@ class ProjectCreate(BaseModel):
     rights_tag: str = "MIT License — Open Contribution"
     tech_stack_json: List[str] = []
     scope: str = "Open to Entire PoOS"
+    # College-created open project fields
+    domain: Optional[str] = None
+    required_skills: Optional[List[str]] = None
+    difficulty_level: Optional[str] = None
+    visibility: Optional[str] = None  # PUBLIC, COLLEGE_ONLY, INVITE_ONLY
+    is_open: Optional[bool] = True
+    start_date: Optional[str] = None
+    expected_completion: Optional[str] = None
+    mentor_name: Optional[str] = None
+
+class ProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    tagline: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    is_open: Optional[bool] = None
+    visibility: Optional[str] = None
+    scope: Optional[str] = None
+    domain: Optional[str] = None
+    tech_stack_json: Optional[List[str]] = None
+    required_skills: Optional[List[str]] = None
+    difficulty_level: Optional[str] = None
+    repo_url: Optional[str] = None
+    mentor_name: Optional[str] = None
+    start_date: Optional[str] = None
+    expected_completion: Optional[str] = None
 
 class ProjectResponse(BaseModel):
     id: int
@@ -135,6 +200,14 @@ class ProjectResponse(BaseModel):
     forks_count: int
     tech_stack_json: List[str]
     scope: Optional[str] = None
+    domain: Optional[str] = None
+    required_skills_json: List[str] = []
+    difficulty_level: Optional[str] = None
+    visibility: Optional[str] = None
+    is_open: Optional[bool] = True
+    start_date: Optional[str] = None
+    expected_completion: Optional[str] = None
+    mentor_name: Optional[str] = None
     created_at: datetime
 
     class Config:

@@ -49,6 +49,9 @@ class StudentProfile(Base):
     portfolio_url = Column(String(255), nullable=True)
     reputation_score = Column(Integer, default=0)
     verified_by_college = Column(Boolean, default=False)
+    # Tri-state college verification: VERIFIED / PENDING / REJECTED.
+    # verified_by_college is kept in sync (True only when VERIFIED) for backward compatibility.
+    verification_status = Column(String(20), default="PENDING")
     skills_json = Column(JSON, default=list) # e.g. [{"name": "React", "level": "Advanced", "verified": True}]
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -64,7 +67,25 @@ class CollegeProfile(Base):
     location = Column(String(255), nullable=True)
     website = Column(String(255), nullable=True)
     linkedin_url = Column(String(255), nullable=True)
+    logo_url = Column(String(500), nullable=True)
+    description = Column(Text, nullable=True)
+    contact_number = Column(String(50), nullable=True)
+    accreditation = Column(String(500), nullable=True)
+    admin_name = Column(String(255), nullable=True)
+    admin_designation = Column(String(255), nullable=True)
     is_verified = Column(Boolean, default=False)
+    affiliation = Column(String(255), nullable=True)
+    established_year = Column(String(10), nullable=True)
+    college_type = Column(String(50), nullable=True) # Government, Private, Autonomous, Deemed University
+    official_contact_email = Column(String(255), nullable=True)
+    address = Column(Text, nullable=True)
+    instagram_url = Column(String(500), nullable=True)
+    youtube_url = Column(String(500), nullable=True)
+    other_links_json = Column(JSON, default=list)
+    admin_contact_number = Column(String(50), nullable=True)
+    admin_role = Column(String(100), nullable=True)
+    verified_by = Column(String(255), nullable=True)
+    verification_date = Column(String(100), nullable=True)
     student_count = Column(Integer, default=0)
     active_projects_count = Column(Integer, default=0)
     departments_json = Column(JSON, default=list)
@@ -129,6 +150,15 @@ class Project(Base):
     forks_count = Column(Integer, default=0)
     tech_stack_json = Column(JSON, default=list)
     scope = Column(String(100), default="Open to Entire PoOS") # College Only, Selected Colleges, Entire PoOS
+    # College-created open project fields (POOS ecosystem opportunities)
+    domain = Column(String(255), nullable=True)
+    required_skills_json = Column(JSON, default=list)
+    difficulty_level = Column(String(50), nullable=True)
+    visibility = Column(String(50), default="PUBLIC") # PUBLIC, COLLEGE_ONLY, INVITE_ONLY
+    is_open = Column(Boolean, default=True)
+    start_date = Column(String(100), nullable=True)
+    expected_completion = Column(String(100), nullable=True)
+    mentor_name = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class ProjectMember(Base):
@@ -138,6 +168,8 @@ class ProjectMember(Base):
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"))
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     role = Column(String(50), default="CONTRIBUTOR") # LEAD, MAINTAINER, CONTRIBUTOR, REVIEWER
+    # Contribution flow: apply/join -> approve if required -> contribute.
+    status = Column(String(20), default="APPROVED") # PENDING, APPROVED, REJECTED
     joined_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class ProjectTask(Base):
@@ -236,13 +268,37 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
     organizer_name = Column(String(255), nullable=False)
+    organizer_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    college_name = Column(String(255), nullable=True)
     event_type = Column(String(100), default="HACKATHON") # HACKATHON, SPRINT, WORKSHOP, MEETUP
     description = Column(Text, nullable=True)
     location = Column(String(255), default="Virtual / Hybrid")
+    is_online = Column(Boolean, default=False)
+    meeting_url = Column(String(500), nullable=True)
     event_date = Column(String(100), nullable=True)
+    event_time = Column(String(100), nullable=True)
+    end_date = Column(String(100), nullable=True)
+    registration_deadline = Column(String(100), nullable=True)
+    max_seats = Column(Integer, default=0) # 0 = unlimited
+    event_status = Column(String(20), nullable=True) # explicit override: UPCOMING, ACTIVE, COMPLETED, CANCELLED
     participant_count = Column(Integer, default=0)
     scope = Column(String(100), default="Open to Entire PoOS") # College Only, Selected Colleges, Entire PoOS
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class EventRegistration(Base):
+    __tablename__ = "event_registrations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_name = Column(String(255), nullable=False)
+    status = Column(String(20), default="REGISTERED") # REGISTERED, CANCELLED
+    registered_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("event_id", "user_id", name="uq_event_user"),
+    )
 
 class MentorSession(Base):
     __tablename__ = "mentor_sessions"

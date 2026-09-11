@@ -1,19 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import { api, getCurrentUserId } from '@/services/api';
-import { Users, ShieldCheck, Activity, FolderGit2, BarChart3, TrendingUp } from 'lucide-react';
-import { EcosystemLeaderboard } from '@/components/ui/EcosystemLeaderboard';
+import {
+  Users, UserCheck, FolderGit2, Activity, BadgeCheck,
+  Calendar, CalendarClock, Trophy, GitCommitHorizontal, Users2,
+  Code2, GitBranch,
+} from 'lucide-react';
+
+interface CollegeOverviewStats {
+  total_students: number;
+  active_students: number;
+  total_projects: number;
+  active_projects: number;
+  completed_projects: number;
+  total_events: number;
+  upcoming_events: number;
+  total_hackathons: number;
+  total_github_contributions: number;
+  active_github_contributors: number;
+  total_skills_identified: number;
+  projects_with_github_activity: number;
+}
 
 interface CollegeProfileData {
-  student_count?: number | null;
-  active_projects_count?: number | null;
-  verified_students_count?: number | null;
   college_name?: string | null;
-  total_contributions?: { commits?: number; prs?: number } | null;
+  overview?: CollegeOverviewStats | null;
 }
+
+const STAT_CARDS: {
+  key: keyof CollegeOverviewStats;
+  label: string;
+  hint: string;
+  icon: React.ReactNode;
+  accent: string;
+}[] = [
+  { key: 'total_students', label: 'Total Students', hint: 'Students registered under the college', icon: <Users size={20} color="var(--purple-primary)" />, accent: 'var(--purple-primary)' },
+  { key: 'active_students', label: 'Active Students', hint: 'Students currently active on POOS', icon: <UserCheck size={20} color="var(--green-primary)" />, accent: 'var(--green-primary)' },
+  { key: 'total_projects', label: 'Total Projects', hint: 'Projects created or registered by students', icon: <FolderGit2 size={20} color="var(--blue-primary)" />, accent: 'var(--blue-primary)' },
+  { key: 'active_projects', label: 'Active Projects', hint: 'Projects currently in development', icon: <Activity size={20} color="var(--orange-primary)" />, accent: 'var(--orange-primary)' },
+  { key: 'completed_projects', label: 'Completed Projects', hint: 'Projects successfully completed', icon: <BadgeCheck size={20} color="var(--green-primary)" />, accent: 'var(--green-primary)' },
+  { key: 'total_events', label: 'Total Events', hint: 'College events conducted or hosted', icon: <Calendar size={20} color="var(--purple-primary)" />, accent: 'var(--purple-primary)' },
+  { key: 'upcoming_events', label: 'Upcoming Events', hint: 'Events scheduled in the future', icon: <CalendarClock size={20} color="var(--blue-primary)" />, accent: 'var(--blue-primary)' },
+  { key: 'total_hackathons', label: 'Total Hackathons', hint: 'Hackathons available / organized', icon: <Trophy size={20} color="var(--orange-primary)" />, accent: 'var(--orange-primary)' },
+  { key: 'total_github_contributions', label: 'Total GitHub Contributions', hint: 'Combined GitHub activity of students', icon: <GitCommitHorizontal size={20} color="var(--text-main)" />, accent: 'var(--text-main)' },
+  { key: 'active_github_contributors', label: 'Active GitHub Contributors', hint: 'Students actively contributing on GitHub', icon: <Users2 size={20} color="var(--green-primary)" />, accent: 'var(--green-primary)' },
+  { key: 'total_skills_identified', label: 'Total Skills Identified', hint: 'Technical skills from profiles / projects', icon: <Code2 size={20} color="var(--purple-primary)" />, accent: 'var(--purple-primary)' },
+  { key: 'projects_with_github_activity', label: 'Projects With GitHub Activity', hint: 'Projects with actual GitHub contributions', icon: <GitBranch size={20} color="var(--blue-primary)" />, accent: 'var(--blue-primary)' },
+];
 
 export const CollegeOverview: React.FC = () => {
   const [profile, setProfile] = useState<CollegeProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,8 +63,8 @@ export const CollegeOverview: React.FC = () => {
       try {
         const data = await api.getCollegeProfile(userId);
         if (!cancelled) setProfile(data);
-      } catch (err) {
-        if (!cancelled) setProfile(null);
+      } catch (err: any) {
+        if (!cancelled) setError(err?.message || 'Failed to load overview.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -36,70 +73,37 @@ export const CollegeOverview: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
 
-  const totalContributions = profile?.total_contributions;
+  const stats = profile?.overview;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', animation: 'fadeIn 0.3s ease' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-        <div className="stat-box" style={{ borderLeftColor: 'var(--purple-primary)' }}>
-          <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Users size={20} color="var(--purple-primary)" /> {loading ? '—' : (profile?.student_count ?? '—')}
-          </div>
-          <div className="lbl">Total Students</div>
-        </div>
-        <div className="stat-box" style={{ borderLeftColor: 'var(--green-primary)' }}>
-          <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck size={20} color="var(--green-primary)" /> {loading ? '—' : (profile?.verified_students_count ?? '—')}
-          </div>
-          <div className="lbl">Verified & Active</div>
-        </div>
-        <div className="stat-box" style={{ borderLeftColor: 'var(--blue-primary)' }}>
-          <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Activity size={20} color="var(--blue-primary)" /> {loading ? '—' : (totalContributions?.commits ?? 0)}
-          </div>
-          <div className="lbl">Contributions</div>
-        </div>
-        <div className="stat-box" style={{ borderLeftColor: 'var(--orange-primary)' }}>
-          <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FolderGit2 size={20} color="var(--orange-primary)" /> {loading ? '—' : (profile?.active_projects_count ?? '—')}
-          </div>
-          <div className="lbl">Active Projects</div>
-        </div>
+      <div>
+        <h2 style={{ fontSize: '20px', fontWeight: 700, margin: 0 }}>Overview — College Performance at a Glance</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '4px 0 0 0' }}>
+          {profile?.college_name ? `${profile.college_name} · ` : ''}A quick understanding of the college&apos;s overall activity and student performance.
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-        <div className="gold-card">
-          <div className="gold-card-header">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 700 }}>
-              <BarChart3 size={18} color="var(--purple-primary)" /> Activity Growth Chart
-            </h3>
-          </div>
-          <div className="gold-card-body" style={{ minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-subtle)' }}>
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-              <TrendingUp size={48} style={{ margin: '0 auto 12px', opacity: 0.2 }} />
-              <p>No activity data available yet.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="gold-card">
-          <div className="gold-card-header">
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px', fontWeight: 700 }}>
-              <Activity size={18} color="var(--purple-primary)" /> Recent Activity
-            </h3>
-          </div>
-          <div className="gold-card-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px 0' }}>
-              <p>No recent activity to show.</p>
-            </div>
+      {error ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Failed to load overview: {error}</div>
+      ) : (
+        <div>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 12px 0' }}>
+            Key Statistics
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            {STAT_CARDS.map((card) => (
+              <div key={card.key} className="stat-box" style={{ borderLeftColor: card.accent }}>
+                <div className="num" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {card.icon} {loading ? '—' : (stats?.[card.key] ?? 0)}
+                </div>
+                <div className="lbl">{card.label}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{card.hint}</div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        <EcosystemLeaderboard type="students" />
-        <EcosystemLeaderboard type="colleges" />
-      </div>
+      )}
     </div>
   );
 };

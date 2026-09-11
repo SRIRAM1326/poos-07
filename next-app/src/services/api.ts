@@ -115,8 +115,24 @@ export const api = {
     return safeFetch<any[]>(`${API_BASE_URL}/profiles/students`);
   },
 
+  getCollegeStudentsOverview: async () => {
+    return safeFetch<any>(`${API_BASE_URL}/profiles/college/students/overview`);
+  },
+
   verifyStudent: async (studentId: number) => {
     return safeFetch(`${API_BASE_URL}/profiles/college/verify-student/${studentId}`, {
+      method: 'POST'
+    });
+  },
+
+  rejectStudent: async (studentId: number) => {
+    return safeFetch(`${API_BASE_URL}/profiles/college/reject-student/${studentId}`, {
+      method: 'POST'
+    });
+  },
+
+  requestVerification: async () => {
+    return safeFetch(`${API_BASE_URL}/profiles/student/request-verification`, {
       method: 'POST'
     });
   },
@@ -170,6 +186,38 @@ getCollegeProfile: async (userId: number) => {
   createProject: async (data: any) => {
     return safeFetch(`${API_BASE_URL}/projects`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
+  getCollegeProjectsOverview: async () => {
+    return safeFetch<any>(`${API_BASE_URL}/projects/college/overview`);
+  },
+
+  createCollegeProject: async (data: any) => {
+    return safeFetch(`${API_BASE_URL}/projects/college`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
+  joinProject: async (projectId: number) => {
+    return safeFetch(`${API_BASE_URL}/projects/${projectId}/join`, { method: 'POST' });
+  },
+
+  approveProjectMember: async (projectId: number, memberId: number) => {
+    return safeFetch(`${API_BASE_URL}/projects/${projectId}/members/${memberId}/approve`, { method: 'POST' });
+  },
+
+  rejectProjectMember: async (projectId: number, memberId: number) => {
+    return safeFetch(`${API_BASE_URL}/projects/${projectId}/members/${memberId}/reject`, { method: 'POST' });
+  },
+
+  updateProject: async (projectId: number, data: any) => {
+    return safeFetch(`${API_BASE_URL}/projects/${projectId}`, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
@@ -259,6 +307,34 @@ getCollegeProfile: async (userId: number) => {
 
   getEvents: async () => {
     return safeFetch<any[]>(`${API_BASE_URL}/events`);
+  },
+
+  getCollegeEventsOverview: async () => {
+    return safeFetch<any>(`${API_BASE_URL}/events/college/overview`);
+  },
+
+  createEvent: async (data: any) => {
+    return safeFetch(`${API_BASE_URL}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  },
+
+  registerForEvent: async (eventId: number) => {
+    return safeFetch(`${API_BASE_URL}/events/${eventId}/register`, { method: 'POST' });
+  },
+
+  cancelEventRegistration: async (eventId: number) => {
+    return safeFetch(`${API_BASE_URL}/events/${eventId}/register`, { method: 'DELETE' });
+  },
+
+  updateEvent: async (eventId: number, data: any) => {
+    return safeFetch(`${API_BASE_URL}/events/${eventId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
   },
 
   // GitHub & Google OAuth (OAuth-only login)

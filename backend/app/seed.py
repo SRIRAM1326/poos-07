@@ -127,6 +127,7 @@ def init_db(force_reseed: bool = False):
             portfolio_url="https://aaravsharma.dev",
             reputation_score=1280,
             verified_by_college=True,
+            verification_status="VERIFIED",
             skills_json=[
                 {"name": "Rust & WebAssembly", "level": "Expert", "category": "Core Systems", "verified": True},
                 {"name": "FastAPI & Python", "level": "Advanced", "category": "Backend", "verified": True},
@@ -147,6 +148,7 @@ def init_db(force_reseed: bool = False):
             portfolio_url="https://diyanair.ai",
             reputation_score=940,
             verified_by_college=True,
+            verification_status="VERIFIED",
             skills_json=[
                 {"name": "PyTorch & Deep Learning", "level": "Advanced", "category": "AI/ML", "verified": True},
                 {"name": "Python & FastAPI", "level": "Advanced", "category": "Backend", "verified": True},
@@ -166,6 +168,7 @@ def init_db(force_reseed: bool = False):
             portfolio_url="https://rohanverma.me",
             reputation_score=810,
             verified_by_college=False, # Unverified to demonstrate College Admin verification queue!
+            verification_status="PENDING",
             skills_json=[
                 {"name": "C++ & Embedded Systems", "level": "Expert", "category": "Systems", "verified": False},
                 {"name": "ROS2 & Gazebo Simulator", "level": "Advanced", "category": "Robotics", "verified": False},
@@ -184,6 +187,7 @@ def init_db(force_reseed: bool = False):
             portfolio_url="https://ananyacloud.io",
             reputation_score=1120,
             verified_by_college=True,
+            verification_status="VERIFIED",
             skills_json=[
                 {"name": "Go & gRPC", "level": "Expert", "category": "Backend", "verified": True},
                 {"name": "Kubernetes & Helm", "level": "Advanced", "category": "Cloud Native", "verified": True},

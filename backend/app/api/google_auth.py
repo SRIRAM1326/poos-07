@@ -25,13 +25,21 @@ def _ensure_role_profile(db: Session, user: models.User) -> None:
     if user.role == "COLLEGE_ADMIN":
         existing = db.query(models.CollegeProfile).filter(models.CollegeProfile.user_id == user.id).first()
         if existing is None:
-            db.add(models.CollegeProfile(user_id=user.id))
+            db.add(models.CollegeProfile(
+                user_id=user.id,
+                college_name=user.full_name or user.email or f"College {user.id}",
+                college_code=f"COL-{user.id}",
+                admin_name=user.full_name,
+            ))
+        elif not existing.admin_name and user.full_name:
+            # Backfill admin identity from the verified Google OAuth profile.
+            existing.admin_name = user.full_name
     elif user.role in ("IT_COMPANY", "NON_IT_COMPANY"):
         existing = db.query(models.CompanyProfile).filter(models.CompanyProfile.user_id == user.id).first()
         if existing is None:
             db.add(models.CompanyProfile(
                 user_id=user.id,
-                company_name=user.full_name,
+                company_name=user.full_name or user.email or f"Company {user.id}",
                 company_type="IT" if user.role == "IT_COMPANY" else "NON_IT",
             ))
 

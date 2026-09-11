@@ -84,9 +84,53 @@ def complete_profile(data: schemas.ProfileSetupRequest, current_user: models.Use
     elif user.role == "COLLEGE_ADMIN":
         col = db.query(models.CollegeProfile).filter(models.CollegeProfile.user_id == user.id).first()
         if col:
-            if data.website_url: col.website = data.website_url
-            if data.linkedin_url: col.linkedin_url = data.linkedin_url
-            if data.college_name: col.college_name = data.college_name
+            # College name (required)
+            if data.college_name:
+                col.college_name = data.college_name
+            # Website accepts either website_url (legacy) or college_website (new)
+            website = data.college_website or data.website_url
+            if website:
+                col.website = website
+            if data.linkedin_url:
+                col.linkedin_url = data.linkedin_url
+            if data.college_logo_url:
+                col.logo_url = data.college_logo_url
+            if data.location:
+                col.location = data.location
+            # Description accepts either description (generic) or bio fallback
+            college_description = data.description or data.bio
+            if college_description:
+                col.description = college_description
+            if data.contact_number:
+                col.contact_number = data.contact_number
+            if data.accreditation:
+                col.accreditation = data.accreditation
+            if data.admin_name:
+                col.admin_name = data.admin_name
+                # Keep the login identity in sync with the admin's name.
+                user.full_name = data.admin_name
+            if data.admin_designation:
+                col.admin_designation = data.admin_designation
+            if data.affiliation:
+                col.affiliation = data.affiliation
+            if data.established_year:
+                col.established_year = data.established_year
+            if data.college_type:
+                col.college_type = data.college_type
+            if data.official_contact_email:
+                col.official_contact_email = data.official_contact_email
+            if data.address:
+                col.address = data.address
+            if data.instagram_url:
+                col.instagram_url = data.instagram_url
+            if data.youtube_url:
+                col.youtube_url = data.youtube_url
+            if data.other_links:
+                col.other_links_json = list(data.other_links)
+            if data.admin_contact_number:
+                col.admin_contact_number = data.admin_contact_number
+            if data.admin_role:
+                col.admin_role = data.admin_role
 
     db.commit()
     db.refresh(user)

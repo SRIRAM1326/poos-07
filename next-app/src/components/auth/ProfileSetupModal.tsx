@@ -24,6 +24,25 @@ export function ProfileSetupModal({ currentUser, onClose, onSuccess }: ProfileSe
   const [projectsText, setProjectsText] = useState('');
   const [bio, setBio] = useState('');
   const [collegeName, setCollegeName] = useState(currentUser?.college_name || '');
+  const [officialEmail] = useState(currentUser?.email || '');
+  const [collegeWebsite, setCollegeWebsite] = useState('');
+  const [collegeLogoUrl, setCollegeLogoUrl] = useState('');
+  const [collegeLocation, setCollegeLocation] = useState('');
+  const [collegeDescription, setCollegeDescription] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [accreditation, setAccreditation] = useState('');
+  const [affiliation, setAffiliation] = useState('');
+  const [establishedYear, setEstablishedYear] = useState('');
+  const [collegeType, setCollegeType] = useState('');
+  const [officialContactEmail, setOfficialContactEmail] = useState(currentUser?.email || '');
+  const [collegeAddress, setCollegeAddress] = useState('');
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [otherLinks, setOtherLinks] = useState('');
+  const [adminContactNumber, setAdminContactNumber] = useState('');
+  const [adminRole, setAdminRole] = useState('');
+  const [adminName, setAdminName] = useState(currentUser?.full_name || '');
+  const [adminDesignation, setAdminDesignation] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [industry, setIndustry] = useState('');
   const [description, setDescription] = useState('');
@@ -37,19 +56,42 @@ export function ProfileSetupModal({ currentUser, onClose, onSuccess }: ProfileSe
     setError('');
 
     try {
-      const payload = {
-        linkedin_url: linkedinUrl,
-        portfolio_url: portfolioUrl,
-        github_url: githubUrl,
-        website_url: websiteUrl,
-        skills: skillsText ? skillsText.split(',').map(s => s.trim()) : [],
-        projects: projectsText ? projectsText.split(',').map(p => p.trim()) : [],
-        bio,
-        college_name: collegeName,
-        company_name: companyName,
-        industry,
-        description
-      };
+      const payload: Record<string, any> = role === 'COLLEGE_ADMIN'
+        ? {
+            college_name: collegeName,
+            college_website: collegeWebsite,
+            website_url: collegeWebsite,
+            college_logo_url: collegeLogoUrl,
+            location: collegeLocation,
+            description: collegeDescription,
+            contact_number: contactNumber,
+            accreditation,
+            admin_name: adminName,
+            admin_designation: adminDesignation,
+            affiliation,
+            established_year: establishedYear,
+            college_type: collegeType,
+            official_contact_email: officialContactEmail,
+            address: collegeAddress,
+            instagram_url: instagramUrl,
+            youtube_url: youtubeUrl,
+            other_links: otherLinks ? otherLinks.split(',').map(s => s.trim()).filter(Boolean) : [],
+            admin_contact_number: adminContactNumber,
+            admin_role: adminRole,
+          }
+        : {
+            linkedin_url: linkedinUrl,
+            portfolio_url: portfolioUrl,
+            github_url: githubUrl,
+            website_url: websiteUrl,
+            skills: skillsText ? skillsText.split(',').map(s => s.trim()) : [],
+            projects: projectsText ? projectsText.split(',').map(p => p.trim()) : [],
+            bio,
+            college_name: collegeName,
+            company_name: companyName,
+            industry,
+            description
+          };
 
       const res = await api.completeProfile(payload);
       if (res.user) {
@@ -103,10 +145,12 @@ export function ProfileSetupModal({ currentUser, onClose, onSuccess }: ProfileSe
               </span>
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 800, margin: '6px 0 0 0', color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
-              Complete Your Discoverability Profile
+              {role === 'COLLEGE_ADMIN' ? 'Complete Your College Verification Profile' : 'Complete Your Discoverability Profile'}
             </h2>
             <p style={{ fontSize: '12px', color: 'var(--text-soft)', margin: '4px 0 0 0' }}>
-              Add your LinkedIn, portfolio, GitHub, skills, projects, and achievements to increase your recruiter visibility.
+              {role === 'COLLEGE_ADMIN'
+                ? 'Add your official college details and admin contact so your institution can be verified on PoOS.'
+                : 'Add your LinkedIn, portfolio, GitHub, skills, projects, and achievements to increase your recruiter visibility.'}
             </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
@@ -220,14 +264,19 @@ export function ProfileSetupModal({ currentUser, onClose, onSuccess }: ProfileSe
             </>
           )}
 
-          {/* College Profile Fields */}
+          {/* College Admin Profile Fields (first-login completion after Google OAuth) */}
           {role === 'COLLEGE_ADMIN' && (
             <>
+              <div style={{ padding: '12px 14px', borderRadius: '8px', background: 'var(--purple-bg, #f3e8ff)', border: '1px solid var(--border-color)', fontSize: '12px', color: 'var(--text-main)' }}>
+                Signed in with Google as <strong>{officialEmail || email || 'your official college email'}</strong>. Complete your college verification profile to access the College Admin dashboard.
+              </div>
+
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>INSTITUTION NAME</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>COLLEGE NAME *</label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. Indian Institute of Technology, Madras"
                   value={collegeName}
                   onChange={(e) => setCollegeName(e.target.value)}
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
@@ -235,23 +284,226 @@ export function ProfileSetupModal({ currentUser, onClose, onSuccess }: ProfileSe
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>COLLEGE WEBSITE URL</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>OFFICIAL COLLEGE EMAIL</label>
                 <input
-                  type="url"
-                  placeholder="https://www.institution.edu"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  type="email"
+                  disabled
+                  value={officialEmail || email}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px', background: 'var(--bg-subtle)' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>COLLEGE WEBSITE *</label>
+                  <input
+                    type="url"
+                    required
+                    placeholder="https://www.institution.edu"
+                    value={collegeWebsite}
+                    onChange={(e) => setCollegeWebsite(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>COLLEGE LOGO (URL)</label>
+                  <input
+                    type="url"
+                    placeholder="https://www.institution.edu/logo.png"
+                    value={collegeLogoUrl}
+                    onChange={(e) => setCollegeLogoUrl(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>LOCATION *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Chennai, Tamil Nadu"
+                    value={collegeLocation}
+                    onChange={(e) => setCollegeLocation(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>CONTACT NUMBER *</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="e.g. +91 44 2257 8000"
+                    value={contactNumber}
+                    onChange={(e) => setContactNumber(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>COLLEGE DESCRIPTION *</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Brief overview of your institution, programs, and campus..."
+                  value={collegeDescription}
+                  onChange={(e) => setCollegeDescription(e.target.value)}
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>LINKEDIN PAGE URL</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ACCREDITATION / AFFILIATION DETAILS *</label>
                 <input
-                  type="url"
-                  placeholder="https://linkedin.com/school/institution"
-                  value={linkedinUrl}
-                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  type="text"
+                  required
+                  placeholder="e.g. NAAC A++, NBA Accredited, Affiliated to Anna University"
+                  value={accreditation}
+                  onChange={(e) => setAccreditation(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ADMIN NAME *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dr. Rajesh Raman"
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ADMIN DESIGNATION *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dean of Student Affairs"
+                    value={adminDesignation}
+                    onChange={(e) => setAdminDesignation(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>AFFILIATION / UNIVERSITY</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Affiliated to Anna University"
+                    value={affiliation}
+                    onChange={(e) => setAffiliation(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ESTABLISHED YEAR</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1959"
+                    value={establishedYear}
+                    onChange={(e) => setEstablishedYear(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>COLLEGE TYPE</label>
+                <select
+                  value={collegeType}
+                  onChange={(e) => setCollegeType(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px', background: 'var(--bg-main)' }}
+                >
+                  <option value="">Select college type...</option>
+                  <option value="Government">Government</option>
+                  <option value="Private">Private</option>
+                  <option value="Autonomous">Autonomous</option>
+                  <option value="Deemed University">Deemed University</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>OFFICIAL CONTACT EMAIL</label>
+                  <input
+                    type="email"
+                    placeholder="e.g. info@institution.edu"
+                    value={officialContactEmail}
+                    onChange={(e) => setOfficialContactEmail(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ADMIN CONTACT NUMBER</label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. +91 98400 12345"
+                    value={adminContactNumber}
+                    onChange={(e) => setAdminContactNumber(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>COLLEGE ADDRESS</label>
+                <textarea
+                  rows={2}
+                  placeholder="Official campus address..."
+                  value={collegeAddress}
+                  onChange={(e) => setCollegeAddress(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>INSTAGRAM URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://instagram.com/institution"
+                    value={instagramUrl}
+                    onChange={(e) => setInstagramUrl(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>YOUTUBE URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://youtube.com/@institution"
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>OTHER OFFICIAL PROFILES (COMMA SEPARATED URLS)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. https://x.com/institution, https://facebook.com/institution"
+                  value={otherLinks}
+                  onChange={(e) => setOtherLinks(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>ADMIN ROLE</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Placement Officer, HOD CSE, Faculty Coordinator"
+                  value={adminRole}
+                  onChange={(e) => setAdminRole(e.target.value)}
                   style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '13px' }}
                 />
               </div>

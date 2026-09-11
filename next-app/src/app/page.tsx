@@ -39,11 +39,16 @@ export default function Home() {
   const applySessionUser = (user: User, isRestore: boolean) => {
     setCurrentUser(user);
     if (user?.role) {
+      // College Admins land only on the College Admin dashboard after Google OAuth.
       setCurrentRole(user.role as UserRole);
       setActiveTab('dashboard');
       setSelectedProjectId(null);
     }
+    // College Admin verification: require profile completion on first login
+    // and on every restored session until it is completed.
     if (!isRestore && user && !user.profile_completed) {
+      setShowProfileSetup(true);
+    } else if (isRestore && user?.role === 'COLLEGE_ADMIN' && !user.profile_completed) {
       setShowProfileSetup(true);
     }
   };

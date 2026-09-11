@@ -135,6 +135,18 @@ body {
   border-color: #ffedd5;
 }
 
+.gold-badge.orange {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.gold-badge.red {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
 .gold-btn {
   display: inline-flex;
   align-items: center;

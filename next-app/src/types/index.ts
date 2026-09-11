@@ -197,7 +197,26 @@ export interface CollegeProfile {
   location?: string;
   website?: string;
   linkedin_url?: string;
+  logo_url?: string;
+  description?: string;
+  contact_number?: string;
+  accreditation?: string;
+  admin_name?: string;
+  admin_designation?: string;
+  official_email?: string;
   is_verified: boolean;
+  affiliation?: string;
+  established_year?: string;
+  college_type?: string;
+  official_contact_email?: string;
+  address?: string;
+  instagram_url?: string;
+  youtube_url?: string;
+  other_links?: string[];
+  admin_contact_number?: string;
+  admin_role?: string;
+  verified_by?: string;
+  verification_date?: string;
   
   // KPI Metrics
   student_count: number;
